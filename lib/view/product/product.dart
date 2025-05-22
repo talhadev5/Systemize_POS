@@ -30,7 +30,7 @@ class _ProductsPageState extends State<ProductsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(text: 'Products'),
+      // appBar: CustomAppBar(text: 'Products'),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(

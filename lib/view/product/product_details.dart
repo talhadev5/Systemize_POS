@@ -1,10 +1,15 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:systemize_pos/bloc/cart_bloc/cart_bloc.dart';
+import 'package:systemize_pos/bloc/cart_bloc/cart_event.dart';
+import 'package:systemize_pos/bloc/cart_bloc/cart_state.dart';
 import 'package:systemize_pos/bloc/product_details_bloc/product_deatils_event.dart';
 import 'package:systemize_pos/bloc/product_details_bloc/product_details_bloc.dart';
 import 'package:systemize_pos/bloc/product_details_bloc/product_details_state.dart';
 import 'package:systemize_pos/configs/color/color.dart';
+import 'package:systemize_pos/configs/widgets/custom_sankbar.dart';
+import 'package:systemize_pos/data/models/cart_model/cart_model.dart';
 import 'package:systemize_pos/data/models/hive_model/products_model.dart';
 import 'package:systemize_pos/utils/app_url.dart';
 import 'package:systemize_pos/utils/extensions/media_query_extensions.dart';
@@ -208,27 +213,75 @@ class _ProductDetailSheetState extends State<ProductDetailSheet> {
           SizedBox(height: context.screenHeight * .01),
 
           /// --- Add to Cart Button ---
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.add_shopping_cart),
-              label: const Text("Add to Cart"),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.customThemeColor,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                textStyle: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
+          BlocBuilder<ProductDetailBloc, ProductDetailState>(
+            builder: (context, productState) {
+              return BlocBuilder<CartBloc, CartState>(
+                builder: (context, cartState) {
+                  return SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.add_shopping_cart),
+                      label: const Text("Add to Cart"),
+                      onPressed: () {
+                        // Variation Validation
+                        if ((productState.selectedVariations.isEmpty)) {
+                          CustomSnackbar.show(
+                            context: context,
+                            message: 'Please select a variation',
+                            icon: Icons.error,
+                          );
+                          return;
+                        }
+
+                        final selectedVariation =
+                            productState.selectedVariations.isNotEmpty
+                                ? productState.selectedVariations.first
+                                : null;
+
+                        final selectedAddOns = productState.selectedAddOns;
+
+                        final cartItem = Items(
+                          id: product.productId.toString(),
+                          productId: product.productId.toString(),
+                          productName: product.title ?? '',
+                          productPrice:
+                              double.tryParse(product.price ?? '0.0') ?? 0.0,
+                          quantity: 1,
+                          saleTax: 0.0,
+                          imageUrl: '$filesBaseUrl/${product.productImage}',
+                          variation: selectedVariation,
+                          addOns: selectedAddOns,
+                          category: product.category,
+                          categoryId: product.categoryId,
+                          companyId: product.companyId,
+                          kitchenId: product.kitchenId,
+                          kitchenName: product.kitchenName,
+                          printerIp: product.printerIp,
+                          productCode: product.productCode,
+                        );
+
+                        // Add to cart
+                        context.read<CartBloc>().add(AddItemToCart(cartItem));
+                        context.read<CartBloc>().add(LoadCart());
+                        Navigator.pop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.customThemeColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        textStyle: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
           ),
 
           const SizedBox(height: 10),

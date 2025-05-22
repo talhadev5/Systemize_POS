@@ -1,8 +1,26 @@
 import 'package:equatable/equatable.dart';
 
 class BottomNavState extends Equatable {
- const  BottomNavState({required this.selectedIndex});
   final int selectedIndex;
+  final String title;
+
+  const BottomNavState({
+    required this.selectedIndex,
+    required this.title,
+  });
+
+  BottomNavState copyWith({
+    int? selectedIndex,
+    String? title,
+  }) {
+    return BottomNavState(
+      selectedIndex: selectedIndex ?? this.selectedIndex,
+      title: title ?? this.title,
+    );
+  }
+
+  
   @override
-  List<Object?> get props => [selectedIndex];
+   List<Object?> get props => [selectedIndex , title];
 }
+

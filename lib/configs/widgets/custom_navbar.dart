@@ -4,6 +4,9 @@ import 'package:systemize_pos/bloc/navbar_bloc/navbar_bloc.dart';
 import 'package:systemize_pos/bloc/navbar_bloc/navbar_event.dart';
 import 'package:systemize_pos/bloc/navbar_bloc/navbar_state.dart';
 import 'package:systemize_pos/configs/color/color.dart';
+import 'package:systemize_pos/configs/components/app_bar.dart';
+import 'package:systemize_pos/configs/routes/routes_name.dart';
+import 'package:systemize_pos/view/cart/cart_screen.dart';
 import 'package:systemize_pos/view/product/product.dart';
 
 class CustomBottomNavBar extends StatefulWidget {
@@ -21,16 +24,63 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
   ];
 
   final List<String> _labels = ["Products", "Cart", "Profile"];
+  List<Widget>? _buildAppBarActions(int index) {
+    switch (index) {
+      case 0: // Products
+        return [
+          IconButton(
+            icon: Icon(
+              Icons.shopping_cart_checkout_outlined,
+              color: AppColors.customThemeColor,
+            ),
+            onPressed: () {
+              Navigator.pushNamed(context, RoutesName.cartScreen);
+            },
+          ),
+        ];
+      case 1: // Cart
+        return [
+          IconButton(
+            icon: Icon(Icons.history),
+            onPressed: () {
+              // Navigate to order history or similar
+            },
+          ),
+        ];
+      case 2: // Profile
+        return [
+          IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: () {
+              // Navigate to settings
+            },
+          ),
+        ];
+      default:
+        return null;
+    }
+  }
 
   final List<Widget> _pages = [
     ProductsPage(),
-    Center(child: Text('Cart')),
+    CartScreen(),
     Center(child: Text('Profile')),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: BlocBuilder<BottomNavBloc, BottomNavState>(
+          builder: (context, state) {
+            return CustomAppBar(
+              text: state.title,
+              actions: _buildAppBarActions(state.selectedIndex),
+            );
+          },
+        ),
+      ),
       extendBody: true,
       backgroundColor: Colors.grey.shade100,
       body: BlocBuilder<BottomNavBloc, BottomNavState>(

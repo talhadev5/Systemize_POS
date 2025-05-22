@@ -172,6 +172,14 @@ class Variation extends HiveObject {
         createdAt: DateTime.tryParse(json["created_at"] ?? ""),
         updatedAt: DateTime.tryParse(json["updated_at"] ?? ""),
       );
+  Map<String, dynamic> toJson() => {
+        "variation_id": variationId,
+        "product_id": productId,
+        "variation_name": variationName,
+        "variation_price": variationPrice,
+        "created_at": createdAt?.toIso8601String(),
+        "updated_at": updatedAt?.toIso8601String(),
+      };   
 }
 
 @HiveType(typeId: 4)
@@ -211,4 +219,12 @@ class AddOn extends HiveObject {
         createdAt: DateTime.tryParse(json["created_at"] ?? ""),
         updatedAt: DateTime.tryParse(json["updated_at"] ?? ""),
       );
+  Map<String, dynamic> toJson() => {
+        "addOn_id": addOnId,
+        "product_id": productId,
+        "addOn_name": addOnName,
+        "addOn_price": addOnPrice,
+        "created_at": createdAt?.toIso8601String(),
+        "updated_at": updatedAt?.toIso8601String(),
+      };    
 }
