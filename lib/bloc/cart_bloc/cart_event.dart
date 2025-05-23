@@ -39,3 +39,14 @@ class SubmitCartOrder extends CartEvent {
 
   SubmitCartOrder({this.orderId, this.isNewOrder = false});
 }
+class SubmitCartOrderWithDetails extends CartEvent {
+  final String customerName;
+  final String orderNote;
+  final String orderType;
+
+  SubmitCartOrderWithDetails({
+    required this.customerName,
+    required this.orderNote,
+    required this.orderType,
+  });
+}

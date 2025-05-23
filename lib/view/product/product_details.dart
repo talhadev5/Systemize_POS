@@ -224,7 +224,22 @@ class _ProductDetailSheetState extends State<ProductDetailSheet> {
                       label: const Text("Add to Cart"),
                       onPressed: () {
                         // Variation Validation
-                        if ((productState.selectedVariations.isEmpty)) {
+
+                        // if ((productState.selectedVariations.isEmpty)) {
+                        //   CustomSnackbar.show(
+                        //     context: context,
+                        //     message: 'Please select a variation',
+                        //     icon: Icons.error,
+                        //   );
+                        //   return;
+                        // }
+
+                        final selectedVariation =
+                            productState.selectedVariations.isNotEmpty
+                                ? productState.selectedVariations.first
+                                : null;
+                        if ((product.variations?.isNotEmpty ?? false) &&
+                            selectedVariation == null) {
                           CustomSnackbar.show(
                             context: context,
                             message: 'Please select a variation',
@@ -232,12 +247,6 @@ class _ProductDetailSheetState extends State<ProductDetailSheet> {
                           );
                           return;
                         }
-
-                        final selectedVariation =
-                            productState.selectedVariations.isNotEmpty
-                                ? productState.selectedVariations.first
-                                : null;
-
                         final selectedAddOns = productState.selectedAddOns;
 
                         final cartItem = Items(

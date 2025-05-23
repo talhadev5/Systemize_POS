@@ -32,7 +32,7 @@ class ProductDetailBloc extends Bloc<ProductDetailEvent, ProductDetailState> {
     }
     emit(state.copyWith(selectedAddOns: updatedAddOns));
   }
-
+  
   // Clear all selections
   void _onClearSelections(
     ClearSelectionsEvent event,

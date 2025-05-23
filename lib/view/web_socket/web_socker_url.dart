@@ -26,7 +26,7 @@ class _WebSocketSettingsPageState extends State<WebSocketSettingsPage> {
   Future<void> _loadSavedUrl() async {
     final prefs = await SharedPreferences.getInstance();
     final savedUrl =
-        prefs.getString('websocket_url') ?? 'ws://192.168.192.24:8765';
+        prefs.getString('websocket_url') ?? 'ws://192.168.192.18:8765';
     setState(() {
       _savedUrl = savedUrl;
       _urlController.text = savedUrl;
@@ -48,7 +48,7 @@ class _WebSocketSettingsPageState extends State<WebSocketSettingsPage> {
       );
     } else {
       CustomSnackbar.show(
-        context: context,
+  context: context,
         message: 'Please enter a valid URL',
       );
     }
@@ -87,7 +87,7 @@ class _WebSocketSettingsPageState extends State<WebSocketSettingsPage> {
               controller: _urlController,
               decoration: InputDecoration(
                 labelText: 'WebSocket URL',
-                hintText: 'e.g., ws://192.168.192.24:8765',
+                hintText: 'e.g., ws://192.168.192.18:8765',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),

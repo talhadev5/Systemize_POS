@@ -9,7 +9,7 @@ class UserService {
   }
 
   static Future<bool> getUser() async {
-    String? userData = await LocalStorage.getData(key: 'user');
+    String? userData = await LocalStorage.getData(key: 'user_details');
     if (userData != null) {
       UserModel userModel = UserModel.fromJson(jsonDecode(userData));
       // await context.read<AuthProvider>().initUser(context, userModel);

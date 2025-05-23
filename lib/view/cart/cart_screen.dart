@@ -6,6 +6,8 @@ import 'package:systemize_pos/bloc/cart_bloc/cart_state.dart';
 import 'package:systemize_pos/configs/color/color.dart';
 import 'package:systemize_pos/configs/components/app_bar.dart';
 import 'package:systemize_pos/configs/components/custom_cart_list.dart';
+import 'package:systemize_pos/configs/widgets/custom_button.dart';
+import 'package:systemize_pos/configs/widgets/custom_textfield.dart';
 import 'package:systemize_pos/data/models/hive_model/products_model.dart';
 import 'package:systemize_pos/utils/extensions/string_extension.dart';
 
@@ -206,7 +208,18 @@ class _CartScreenState extends State<CartScreen> {
                         width: double.infinity,
                         child: ElevatedButton.icon(
                           onPressed: () {
-                            context.read<CartBloc>().add(SubmitCartOrder());
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(16),
+                                ),
+                              ),
+                              builder:
+                                  (_) => _showOrderDetailsBottomSheet(context),
+                            );
+                            // context.read<CartBloc>().add(SubmitCartOrder());
                           },
                           icon: const Icon(Icons.check_circle_outline),
                           label: const Text("Save & Kitchen"),
@@ -398,6 +411,141 @@ class _CartScreenState extends State<CartScreen> {
                 ],
               ),
             ),
+      ),
+    );
+  }
+
+  // order details.............
+  Widget _showOrderDetailsBottomSheet(BuildContext context) {
+    String selectedOrderType = 'Dine In';
+    final customerNameController = TextEditingController();
+    final orderNoteController = TextEditingController();
+
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: StatefulBuilder(
+        builder: (context, setModalState) {
+          return Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(25),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 10,
+                  offset: Offset(0, -3),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade400,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "Order Details",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 20),
+
+                  /// Customer Name
+                  CustomTextField(
+                    key: const ValueKey("customerName"),
+                    labelText: "Customer Name",
+                    hintText: "e.g. John Doe (optional)",
+                    prefixIcon: Icons.person,
+                    controller: customerNameController,
+                    // validator: (value) {
+                    //   if (value == null || value.isEmpty) {
+                    //     return "Customer name is required";
+                    //   }
+                    //   return null;
+                    // },
+                    onChanged: (value) {},
+                    onEditingComplete: () {},
+                  ),
+                  const SizedBox(height: 16),
+
+                  /// Order Note
+                  CustomTextField(
+                    key: const ValueKey("orderNote"),
+                    labelText: "Order Note",
+                    hintText: "e.g. kitchen, allergy info (optional)",
+                    prefixIcon: Icons.note,
+                    controller: orderNoteController,
+                    keyboardType: TextInputType.multiline,
+                    textInputAction: TextInputAction.newline,
+                    onChanged: (value) {},
+                    onEditingComplete: () {},
+                  ),
+                  const SizedBox(height: 20),
+
+                  /// Order Type Selection
+                  const Text(
+                    "Order Type",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(height: 8),
+                  ...['Dine In', 'Take Away', 'Delivery'].map(
+                    (type) => RadioListTile<String>(
+                      activeColor: AppColors.customThemeColor,
+                      title: Text(type),
+                      value: type,
+                      groupValue: selectedOrderType,
+                      contentPadding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                      dense: true,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      onChanged: (value) {
+                        setModalState(() {
+                          selectedOrderType = value!;
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  /// Save Button
+                  CustomButton(
+                    title: 'Save & Kitchen',
+                    borderRadius: 20,
+                    height: 50,
+                    onTap: () {
+                      context.read<CartBloc>().add(
+                        SubmitCartOrderWithDetails(
+                          customerName: customerNameController.text.trim(),
+                          orderNote: orderNoteController.text.trim(),
+                          orderType: selectedOrderType,
+                        ),
+                      );
+                      context.read<CartBloc>().add(SubmitCartOrder());
+                      Navigator.pop(context);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
