@@ -9,6 +9,7 @@ import 'package:systemize_pos/bloc/cart_bloc/cart_event.dart';
 import 'package:systemize_pos/bloc/cart_bloc/cart_state.dart';
 import 'package:systemize_pos/data/models/cart_model/cart_model.dart';
 import 'package:systemize_pos/data/models/hive_model/products_model.dart';
+import 'package:systemize_pos/data/models/users/user_model.dart';
 import 'package:systemize_pos/data/services/cart_services/cart_services.dart';
 import 'package:systemize_pos/data/services/storage/local_storage.dart';
 import 'package:web_socket_channel/io.dart';
@@ -163,7 +164,9 @@ class CartBloc extends Bloc<CartEvent, CartState> {
   ) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final websocketUrl = prefs.getString('websocket_url');
-
+ debugPrint(
+        "..............websoket url: $websocketUrl .................",
+      );
     if (websocketUrl == null || websocketUrl.isEmpty) {
       debugPrint(
         "..............websoket error: $websocketUrl .................",
@@ -188,8 +191,19 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     try {
       debugPrint("Preparing order data...");
 
-      String? userIdStr = await LocalStorage.getData(key: 'userId');
-      int? userId = userIdStr != null ? int.tryParse(userIdStr) : null;
+      final savedUserData = await LocalStorage.getData(key: 'user');
+      int? userId;
+      String? userName;
+
+      if (savedUserData != null) {
+        try {
+          final userModel = UserModel.fromJson(jsonDecode(savedUserData));
+          userId = userModel.userDetails?.id;
+          userName = userModel.userDetails?.name;
+        } catch (e) {
+          debugPrint("Error parsing user data: $e");
+        }
+      }
 
       // Fetch additional data
       String? orderType = prefs.getString('orderType');
@@ -252,7 +266,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
           "customerName": state.customerName,
           "address": address ?? "",
           "assignRider": rider ?? "",
-          "waiter": waiter ?? "",
+          "waiter": userId ?? "",
           "table_no": table ?? "",
           "table_id": "",
           "table_location": tableLocation ?? "",
@@ -260,7 +274,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
           "orderNote": state.orderNote,
           "customer_id": "",
           "table_capacity": tableCapacity ?? "",
-          "waiterName": "",
+          "waiterName": userName ?? '',
           "branch_id": branchId ?? "1",
         },
         "type": orderType ?? "dineIn",
@@ -299,7 +313,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
         "subTotal": state.subTotal,
         "screen": "confirmOrder",
         "status": "ready",
-        "userId": 2,
+        "userId": userId,
         "checked": true,
         "split": 1,
         "splittedAmount": 0,
@@ -321,7 +335,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       // );
       debugPrint("Connecting to WebSocket...");
       final channel = IOWebSocketChannel.connect(
-        Uri.parse('ws://192.168.192.18:8765'),
+        Uri.parse(websocketUrl),
       );
 
       // channel.sink.add(jsonEncode(data));

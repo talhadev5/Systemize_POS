@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:systemize_pos/data/models/users/user_model.dart';
 
-enum LoginStatus { initial, loading, success, error }
+enum LoginStatus { initial, loading, success, error,loggedOut }
 
 class LoginState extends Equatable {
   const LoginState({
@@ -14,7 +14,7 @@ class LoginState extends Equatable {
   final LoginStatus loginStatus;
   final UserModel? userModel;
 
-  LoginState copyWith({
+  LoginState copyWith({ 
     String? message,
     LoginStatus? loginStatus,
     UserModel? userModel, // again, replace with your real model class

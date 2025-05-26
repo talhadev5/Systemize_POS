@@ -417,7 +417,7 @@ class _CartScreenState extends State<CartScreen> {
 
   // order details.............
   Widget _showOrderDetailsBottomSheet(BuildContext context) {
-    String selectedOrderType = 'Dine In';
+    String selectedOrderType = 'dineIn';
     final customerNameController = TextEditingController();
     final orderNoteController = TextEditingController();
 
@@ -502,25 +502,58 @@ class _CartScreenState extends State<CartScreen> {
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: 8),
-                  ...['Dine In', 'Take Away', 'Delivery'].map(
-                    (type) => RadioListTile<String>(
-                      activeColor: AppColors.customThemeColor,
-                      title: Text(type),
-                      value: type,
-                      groupValue: selectedOrderType,
-                      contentPadding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
-                      dense: true,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      onChanged: (value) {
-                        setModalState(() {
-                          selectedOrderType = value!;
-                        });
-                      },
-                    ),
+                  Row(
+                    mainAxisAlignment:
+                        MainAxisAlignment
+                            .spaceBetween, // or spaceEvenly/spaceAround as you want
+                    children:
+                        ['dineIn', 'takeAway'].map((type) {
+                          return Expanded(
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: () {
+                                setModalState(() {
+                                  selectedOrderType = type;
+                                });
+                              },
+                              child: Container(
+                                margin: EdgeInsets.only(right: 8),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color:
+                                        selectedOrderType == type
+                                            ? AppColors.customThemeColor
+                                            : Colors.grey.shade300,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Radio<String>(
+                                      value: type,
+                                      groupValue: selectedOrderType,
+                                      activeColor: AppColors.customThemeColor,
+                                      onChanged: (value) {
+                                        setModalState(() {
+                                          selectedOrderType = value!;
+                                        });
+                                      },
+                                    ),
+                                    SizedBox(width: 4),
+                                    Text(type.toString().capitalizeEachWord()),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
                   ),
+
                   const SizedBox(height: 24),
 
                   /// Save Button
@@ -529,6 +562,11 @@ class _CartScreenState extends State<CartScreen> {
                     borderRadius: 20,
                     height: 50,
                     onTap: () {
+                      print("name.......${customerNameController.text.trim()}");
+                      print(
+                        "orderNote.......${orderNoteController.text.trim()}",
+                      );
+                      print("type......${selectedOrderType}");
                       context.read<CartBloc>().add(
                         SubmitCartOrderWithDetails(
                           customerName: customerNameController.text.trim(),

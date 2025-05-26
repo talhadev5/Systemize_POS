@@ -4,6 +4,8 @@ import 'package:systemize_pos/configs/widgets/custom_navbar.dart';
 import 'package:systemize_pos/view/auth/login.dart';
 import 'package:systemize_pos/view/cart/cart_screen.dart';
 import 'package:systemize_pos/view/splash/splash.dart';
+import 'package:systemize_pos/view/user_profile/order_list/order_list.dart';
+import 'package:systemize_pos/view/web_socket/websocket_setting.dart';
 
 class Routes {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -18,20 +20,31 @@ class Routes {
           builder: (BuildContext context) => LoginPage(),
         );
 
+      case RoutesName.navBar:
+        return MaterialPageRoute(
+          builder: (BuildContext context) => CustomBottomNavBar(),
+        );
+
       case RoutesName.home:
         return MaterialPageRoute(
           builder: (BuildContext context) {
             return Scaffold();
           },
         );
-      case RoutesName.navBar:
-        return MaterialPageRoute(
-          builder: (BuildContext context) => CustomBottomNavBar(),
-        );
 
       case RoutesName.cartScreen:
         return MaterialPageRoute(
           builder: (BuildContext context) => CartScreen(),
+        );
+
+      case RoutesName.orderList:
+        return MaterialPageRoute(
+          builder: (BuildContext context) => OrderListScreen(),
+        );
+
+      case RoutesName.webSocketSetting:
+        return MaterialPageRoute(
+          builder: (BuildContext context) => WebSocketSettingsPage(),
         );
 
       default:

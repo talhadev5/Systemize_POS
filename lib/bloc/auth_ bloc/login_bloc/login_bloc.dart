@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
+import 'package:flutter/material.dart';
 import 'package:systemize_pos/bloc/auth_%20bloc/login_bloc/login_event.dart';
 import 'package:systemize_pos/bloc/auth_%20bloc/login_bloc/login_state.dart';
+import 'package:systemize_pos/configs/routes/routes_name.dart';
 import 'package:systemize_pos/data/models/users/user_model.dart';
 import 'package:systemize_pos/data/services/api_service.dart';
 import 'package:systemize_pos/data/services/storage/local_storage.dart';
@@ -11,11 +13,11 @@ import 'package:systemize_pos/utils/app_url.dart';
 import 'package:systemize_pos/utils/constant.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
-  
   LoginBloc() : super(LoginState()) {
     on<LoginApi>(loginApi);
     on<LoadInitialData>(loadInitialData);
     on<UpdateUserData>(updateUserData);
+    on<LogoutEvent>(_logout);
   }
   // This is the constructor for the LoginBloc class, which initializes the state and sets up event handlers.
   void loadInitialData(LoadInitialData event, Emitter<LoginState> emit) async {
@@ -48,7 +50,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       );
     }
   }
-// This method handles the login API call
+
+  // This method handles the login API call
   void loginApi(LoginApi event, Emitter<LoginState> emit) async {
     emit(state.copyWith(loginStatus: LoginStatus.loading));
 
@@ -91,7 +94,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     );
   }
 
-// This method updates the user data in the state
+  // This method updates the user data in the state
   void updateUserData(UpdateUserData event, Emitter<LoginState> emit) {
     emit(
       state.copyWith(
@@ -99,6 +102,40 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         userModel: event.updatedUserModel,
         message: 'User data updated',
       ),
-    );  
+    );
+  }
+
+  // logout method.........
+  void _logout(LogoutEvent event, Emitter<LoginState> emit) async {
+    emit(state.copyWith(loginStatus: LoginStatus.loading));
+
+    // Call logout API
+    await ApiService.postMethod(
+      apiUrl: logout, // <- your logout API URL
+      authHeader: true,
+
+      postData: {}, // if your logout API doesn't need data, leave it empty
+      executionMethod: (bool success, dynamic responseData) async {
+        if (success) {
+          // Clear local storage after successful logout
+          await LocalStorage.removeAll();
+          // Navigator.pushReplacementNamed(context, RoutesName.login);
+          emit(
+            state.copyWith(
+              loginStatus: LoginStatus.loggedOut,
+              userModel: null,
+              message: 'Logged out successfully',
+            ),
+          );
+        } else {
+          emit(
+            state.copyWith(
+              loginStatus: LoginStatus.error,
+              message: responseData['message'] ?? 'Logout failed',
+            ),
+          );
+        }
+      },
+    );
   }
 }

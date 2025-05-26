@@ -19,7 +19,7 @@ class ProductsModel extends HiveObject {
 }
 
 @HiveType(typeId: 1)
-class Data extends HiveObject {
+class   Data extends HiveObject {
   @HiveField(0)
   List<Product> products;
 

@@ -303,7 +303,7 @@ class CustomCartListview extends StatelessWidget {
               width: 80,
               height: 80,
               fit: BoxFit.cover,
-              placeholder: (context, url) => const CustomLoader(size: 20),
+              placeholder: (context, url) => const DefultLoader(size: 20),
               errorWidget:
                   (context, url, error) => Image.network(
                     'https://images.unsplash.com/photo-1600891964599-f61ba0e24092?auto=format&fit=crop&w=400&q=80',

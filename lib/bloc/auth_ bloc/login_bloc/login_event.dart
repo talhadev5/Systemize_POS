@@ -30,3 +30,4 @@ class UpdateUserData extends LoginEvent {
   @override
   List<Object> get props => [updatedUserModel];
 }
+class LogoutEvent extends LoginEvent {}

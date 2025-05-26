@@ -112,7 +112,7 @@ class _ProductsPageState extends State<ProductsPage> {
               child: BlocBuilder<ProductBloc, ProductState>(
                 builder: (context, state) {
                   if (state.productStatus == ProductStatus.loading) {
-                    return const CustomLoader();
+                    return const DefultLoader();
                   } else if (state.productStatus == ProductStatus.error) {
                     return Center(
                       child: Text(
@@ -217,7 +217,7 @@ class _ProductsPageState extends State<ProductsPage> {
                                         fit: BoxFit.cover,
                                         placeholder:
                                             (context, url) =>
-                                                const CustomLoader(size: 20),
+                                                const DefultLoader(size: 20),
                                         errorWidget:
                                             (
                                               context,

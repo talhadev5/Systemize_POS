@@ -8,8 +8,9 @@ import 'package:systemize_pos/configs/components/app_bar.dart';
 import 'package:systemize_pos/configs/routes/routes_name.dart';
 import 'package:systemize_pos/view/cart/cart_screen.dart';
 import 'package:systemize_pos/view/product/product.dart';
+import 'package:systemize_pos/view/user_profile/user_profile.dart';
 import 'package:systemize_pos/view/web_socket/socket_status.dart';
-import 'package:systemize_pos/view/web_socket/web_socker_url.dart';
+import 'package:systemize_pos/view/web_socket/websocket_setting.dart';
 
 class CustomBottomNavBar extends StatefulWidget {
   const CustomBottomNavBar({super.key});
@@ -52,9 +53,9 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
       case 2: // Profile
         return [
           IconButton(
-            icon: Icon(Icons.settings),
+            icon: Icon(Icons.wifi),
             onPressed: () {
-              // Navigate to settings
+              Navigator.pushNamed(context, RoutesName.webSocketSetting);
             },
           ),
         ];
@@ -66,8 +67,9 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
   final List<Widget> _pages = [
     ProductsPage(),
     // CartScreen(),
-    WebSocketStatusWidget(url: 'ws://192.168.192.18:8765'),
-    WebSocketSettingsPage(),
+    WebSocketStatusWidget(url: 'ws://192.168.192.2:8765'),
+    // WebSocketSettingsPage(),
+    ProfileScreen(),
     // Center(child: Text('Profile')),
   ];
 
