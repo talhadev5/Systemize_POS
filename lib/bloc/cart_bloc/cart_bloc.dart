@@ -26,7 +26,6 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     on<MoveHeldItemToCart>(_onMoveHeldItemToCart);
     on<ClearHeldCart>(_onClearHeldCart);
     on<SubmitCartOrder>(_onSubmitCartOrder);
-    on<SubmitCartOrderWithDetails>(_onSubmitDetails);
   }
 
   Future<void> _onLoadCart(LoadCart event, Emitter<CartState> emit) async {
@@ -163,14 +162,12 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     Emitter<CartState> emit,
   ) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    final websocketUrl = prefs.getString('websocket_url');
- debugPrint(
-        "..............websoket url: $websocketUrl .................",
-      );
-    if (websocketUrl == null || websocketUrl.isEmpty) {
-      debugPrint(
-        "..............websoket error: $websocketUrl .................",
-      );
+    final websocketUrl = 'ws://192.168.192.2:8765';
+    String? uniqueId = prefs.getString('worker_unique_id');
+
+    debugPrint("..............Worket Id: $uniqueId  .................");
+    debugPrint("..............websoket url: $websocketUrl .................");
+    if (websocketUrl.isEmpty) {
       emit(
         CartSubmitFailure(
           'WebSocket URL not set. Please set it in Settings first.',
@@ -178,7 +175,6 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       );
       return;
     }
-    debugPrint("...............................");
     emit(
       CartSubmitting(
         cartItems: List<Items>.from(state.cartItems),
@@ -206,14 +202,14 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       }
 
       // Fetch additional data
-      String? orderType = prefs.getString('orderType');
-      String? waiter = prefs.getString('waiter');
-      String? table = prefs.getString('table');
-      String? customerName = prefs.getString('customerName');
+      // String? orderType = prefs.getString('orderType');
+      // String? waiter = prefs.getString('waiter');
+      // String? table = prefs.getString('table');
+      // String? customerName = prefs.getString('customerName');
       String? phone = prefs.getString('phone');
       String? address = prefs.getString('address');
       String? rider = prefs.getString('rider');
-      String? tableLocation = prefs.getString('selectedTableLocation');
+      // String? tableLocation = prefs.getString('selectedTableLocation');
       String? tableCapacity = prefs.getString('selectedTableCapacity');
       String? branchId = prefs.getString('branchId');
 
@@ -224,119 +220,93 @@ class CartBloc extends Bloc<CartEvent, CartState> {
 
       debugPrint('Cart contains ${state.cartItems.length} items.');
 
-      // List<Map<String, dynamic>> cartItemsData =
-      //     state.cartItems.map((item) {
-      //       return {
-      //         "qty": item.quantity,
-      //         "price": item.productPrice.toString(),
-      //         "title": item.productName,
-      //         "add_on": item.addOns.map((addOn) => addOn.toJson()).toList(),
-      //         "variations":
-      //             item.variation != null ? [item.variation!.toJson()] : [],
-      //         "product_id": item.productId,
-      //         "category": item.category,
-      //         "product_variation": item.variation?.toJson(),
-      //         "additional_item": 0,
-      //         "app_url": "https://adminpos.thewebconcept.com/",
-      //         "branch_id": branchId ?? "",
-      //         "category_id": item.categoryId ?? "",
-      //         "company_id": item.companyId ?? "",
-      //         "created_at": DateTime.now().toIso8601String(),
-      //         "favourite_item": "0",
-      //         "kitchen_id": item.kitchenId ?? "",
-      //         "kitchen_name": item.kitchenName ?? "",
-      //         "printer_ip": item.printerIp ?? "BIXOLON SRP-330III",
-      //         "product_code": item.productCode ?? "",
-      //         "product_image": "",
-      //         "updated_at": DateTime.now().toIso8601String(),
-      //       };
-      //     }).toList();
-
-      // debugPrint(
-      //   "Cart Items JSON:\n${JsonEncoder.withIndent('  ').convert(cartItemsData)}",
-      // );
-
-      String orderId =
-          event.orderId ??
-          "${DateTime.now().year}${Random().nextInt(9999).toString().padLeft(4, '0')}";
-
+      int orderId =
+          event.orderId != null
+              ? int.tryParse(event.orderId!) ??
+                  int.parse(
+                    "${DateTime.now().year}${Random().nextInt(9999).toString().padLeft(4, '0')}",
+                  )
+              : int.parse(
+                "${DateTime.now().year}${Random().nextInt(9999).toString().padLeft(4, '0')}",
+              );
       Map<String, dynamic> data = {
-        "info": {
-          "phone": phone ?? "",
-          "customerName": state.customerName,
-          "address": address ?? "",
-          "assignRider": rider ?? "",
-          "waiter": userId ?? "",
-          "table_no": table ?? "",
-          "table_id": "",
-          "table_location": tableLocation ?? "",
-          "type": state.orderType,
-          "orderNote": state.orderNote,
-          "customer_id": "",
-          "table_capacity": tableCapacity ?? "",
-          "waiterName": userName ?? '',
-          "branch_id": branchId ?? "1",
-        },
-        "type": orderType ?? "dineIn",
-        "cartItems":
-            state.cartItems.map((item) {
-              Map<String, dynamic> variationJson =
-                  item.variation?.toJson() ?? {};
+        "reqType": "message",
+        "to": "main",
+        "from": uniqueId,
+        "payload": {
+          "info": {
+            "phone": phone ?? "",
+            "customerName": event.customerName,
+            "address": address ?? "",
+            "assignRider": rider ?? "",
+            "waiter": userId ?? "",
+            "table_no": event.tableNo ?? "",
+            "table_id": event.tableNo ?? "",
+            "table_location":event.tableNo?? "",
+            "type": event.orderType,
+            "orderNote": event.orderNote,
+            "customer_id": "",
+            "table_capacity": tableCapacity ?? "",
+            "waiterName": userName ?? '',
+            "branch_id": branchId ?? "1",
+          },
+          "type": event.orderNote ?? "dineIn",
+          "cartItems":
+              state.cartItems.map((item) {
+                Map<String, dynamic> variationJson =
+                    item.variation?.toJson() ?? {};
 
-              return {
-                "product_id": int.tryParse(item.productId) ?? 0,
-                "company_id": item.companyId ?? "1",
-                "branch_id": branchId ?? "1",
-                "category_id": item.categoryId ?? "",
-                "category": item.category ?? "",
-                "printer_ip": item.printerIp ?? "BIXOLON SRP-330III",
-                "kitchen_id": item.kitchenId ?? 0,
-                "kitchen_name": item.kitchenName ?? "",
-                "product_code": item.productCode ?? "",
-                "title": item.productName,
-                "product_image": '',
-                "favourite_item": "1",
-                "app_url": "https://adminpos.thewebconcept.com/",
-                "price": item.productPrice.toString(),
-                "created_at": DateTime.now().toIso8601String(),
-                "updated_at": DateTime.now().toIso8601String(),
-                "variations": item.variation != null ? [variationJson] : [],
-                "add_on": item.addOns.map((addOn) => addOn.toJson()).toList(),
-                "qty": item.quantity,
-                "additional_item": 0,
-                "product_variation":
-                    item.variation != null ? [variationJson] : [],
-              };
-            }).toList(),
-        "updatedOrderCartItems": [],
-        "createdAt": int.parse(currentTime),
-        "subTotal": state.subTotal,
-        "screen": "confirmOrder",
-        "status": "ready",
-        "userId": userId,
-        "checked": true,
-        "split": 1,
-        "splittedAmount": 0,
-        "change": 0,
-        "discount": 0,
-        "serviceCharges": "",
-        "saleTax": state.totalSaleTax,
-        "finalTotal": state.grandTotal,
-        "grandTotal": state.grandTotal,
-        "isUploaded": 0,
-        "credited_amount": 0,
-        "updatedOrder": [],
-        "orderHistory": "",
-        "orderDateTime": formattedDate,
-        "id": int.parse(orderId),
+                return {
+                  "product_id": int.tryParse(item.productId) ?? 0,
+                  "company_id": item.companyId ?? "1",
+                  "branch_id": branchId ?? "1",
+                  "category_id": item.categoryId ?? "",
+                  "category": item.category ?? "",
+                  "printer_ip": item.printerIp ?? "BIXOLON SRP-330III",
+                  "kitchen_id": item.kitchenId ?? 0,
+                  "kitchen_name": item.kitchenName ?? "",
+                  "product_code": item.productCode ?? "",
+                  "title": item.productName,
+                  "product_image": '',
+                  "favourite_item": "1",
+                  "app_url": "https://adminpos.thewebconcept.com/",
+                  "price": item.productPrice.toString(),
+                  "created_at": DateTime.now().toIso8601String(),
+                  "updated_at": DateTime.now().toIso8601String(),
+                  "variations": item.variation != null ? [variationJson] : [],
+                  "add_on": item.addOns.map((addOn) => addOn.toJson()).toList(),
+                  "qty": item.quantity,
+                  "additional_item": 0,
+                  "product_variation":
+                      item.variation != null ? [variationJson] : [],
+                };
+              }).toList(),
+          "updatedOrderCartItems": [],
+          "createdAt": int.parse(currentTime),
+          "subTotal": state.subTotal,
+          "screen": "confirmOrder",
+          "status": "ready",
+          "userId": userId,
+          "checked": true,
+          "split": 1,
+          "splittedAmount": 0,
+          "change": 0,
+          "discount": 0,
+          "serviceCharges": "",
+          "saleTax": state.totalSaleTax,
+          "finalTotal": state.grandTotal,
+          "grandTotal": state.grandTotal,
+          "isUploaded": 0,
+          "credited_amount": 0,
+          "updatedOrder": [],
+          "orderHistory": "",
+          "orderDateTime": formattedDate,
+          "id": orderId,
+        },
       };
-      // debugPrint(
-      //   "Cart Items JSON:\n${JsonEncoder.withIndent('  ').convert(data)}",
-      // );
+
       debugPrint("Connecting to WebSocket...");
-      final channel = IOWebSocketChannel.connect(
-        Uri.parse(websocketUrl),
-      );
+      final channel = IOWebSocketChannel.connect(Uri.parse(websocketUrl));
 
       // channel.sink.add(jsonEncode(data));
       debugPrint("Order sent. Waiting for server response...");
@@ -348,18 +318,29 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       debugPrint('Order sent via WebSocket');
 
       // Optionally wait for a response
+      // final response = await channel.stream.first;
+      // debugPrint('WebSocket response: $response');
+
+      // await channel.sink.close();
+      // debugPrint("WebSocket closed.");
+
+      // // Clear SharedPreferences after success
+      // await _clearSharedPreferences();
+      // debugPrint("SharedPreferences cleared.");
+      // add(ClearCart());
+
+      // emit(CartSubmitSuccess());
+
       final response = await channel.stream.first;
       debugPrint('WebSocket response: $response');
 
-      await channel.sink.close();
-      debugPrint("WebSocket closed.");
-
-      // Clear SharedPreferences after success
-      await _clearSharedPreferences();
-      debugPrint("SharedPreferences cleared.");
-      add(ClearCart());
-
-      emit(CartSubmitSuccess());
+      if (response.contains('New order successfully added')) {
+        await _clearSharedPreferences();
+        add(ClearCart());
+        emit(CartSubmitSuccess());
+      } else {
+        emit(CartSubmitFailure('Order failed: $response'));
+      }
     } catch (e) {
       debugPrint("WebSocket error: $e");
       // await channel.sink.close();
@@ -378,19 +359,5 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     await prefs.remove('rider');
     await prefs.remove('selectedTableLocation');
     await prefs.remove('selectedTableCapacity');
-  }
-
-  //  order details.............
-  void _onSubmitDetails(
-    SubmitCartOrderWithDetails event,
-    Emitter<CartState> emit,
-  ) {
-    emit(
-      state.copyWith(
-        customerName: event.customerName,
-        orderNote: event.orderNote,
-        orderType: event.orderType,
-      ),
-    );
   }
 }

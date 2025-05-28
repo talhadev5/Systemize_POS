@@ -52,7 +52,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           return Scaffold(
             body: Stack(
-              alignment: Alignment.center,
               children: [
                 RefreshIndicator(
                   onRefresh: () async {
@@ -72,8 +71,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Navigator.pushNamed(context, RoutesName.orderList);
                         },
                       ),
-                      // const Divider(height: 0),
-                      // _buildOptionTile(context, "Check WebSocket", Icons.account_box),
+                      const Divider(height: 0),
+                      _buildOptionTile(
+                        context,
+                        "Check Status",
+                        Icons.link,
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            RoutesName.webSocketStatus,
+                          );
+                        },
+                      ),
                       const Divider(height: 0),
                       _buildOptionTile(
                         context,
@@ -92,8 +101,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                 ),
-                if (state.loginStatus == LoginStatus.loading)
-                  CustomLoader(color: AppColors.customThemeColor),
+                if (state.loginStatus == LoginStatus.loading) CustomLoader(),
               ],
             ),
           );
@@ -132,7 +140,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 fit: BoxFit.cover,
                 placeholder: (context, url) => DefultLoader(),
                 errorWidget:
-                    (context, url, error) => const Icon(Icons.error, size: 40),
+                    (context, url, error) => const Icon(Icons.person, size: 40),
               ),
             ),
           ),

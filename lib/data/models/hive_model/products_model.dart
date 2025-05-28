@@ -172,7 +172,7 @@ class Variation extends HiveObject {
         createdAt: DateTime.tryParse(json["created_at"] ?? ""),
         updatedAt: DateTime.tryParse(json["updated_at"] ?? ""),
       );
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => {  
         "variation_id": variationId,
         "product_id": productId,
         "variation_name": variationName,

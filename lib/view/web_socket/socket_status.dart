@@ -1,83 +1,114 @@
+// websocket_status_widget.dart
 import 'package:flutter/material.dart';
-import 'package:web_socket_channel/io.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:systemize_pos/bloc/soket_connection/soket_con_bolc.dart';
+import 'package:systemize_pos/bloc/soket_connection/soket_con_state.dart';
+import 'package:systemize_pos/configs/color/color.dart';
+import 'package:systemize_pos/configs/components/app_bar.dart';
 
-class WebSocketStatusWidget extends StatefulWidget {
-  final String url;
-
-  WebSocketStatusWidget({required this.url});
-
-  @override
-  _WebSocketStatusWidgetState createState() => _WebSocketStatusWidgetState();
-}
-
-class _WebSocketStatusWidgetState extends State<WebSocketStatusWidget> {
-  late WebSocketChannel channel;
-  String status = "Connecting...";
-
-  @override
-  void initState() {
-    super.initState();
-    connectToWebSocket();
-  }
-
-  void connectToWebSocket() {
-    try {
-      channel = IOWebSocketChannel.connect(Uri.parse(widget.url));
-
-      channel.stream.listen(
-        (message) {
-          // You can update this logic based on your server's first message
-          setState(() {
-            status = "Connected ✅";
-          });
-        },
-        onError: (error) {
-          setState(() {
-            status = "Disconnected ❌";
-          });
-        },
-        onDone: () {
-          setState(() {
-            status = "Connection Closed ❌";
-          });
-        },
-      );
-    } catch (e) {
-      setState(() {
-        status = "Failed: $e ❌";
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    channel.sink.close();
-    super.dispose();
-  }
+class WebSocketStatusWidget extends StatelessWidget {
+  // final String url;
+  const WebSocketStatusWidget({super.key,});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("WebSocket Status")),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              "WebSocket Status:",
-              style: TextStyle(fontSize: 20),
-            ),
-            SizedBox(height: 12),
-            Text(
-              status,
-              style: TextStyle(
-                fontSize: 24,
-                color: status.contains("Connected") ? Colors.green : Colors.red,
-                fontWeight: FontWeight.bold,
+      appBar: CustomAppBar(
+        text: 'WebSocket Status',
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: AppColors.customThemeColor),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+
+      body: BlocBuilder<WebSocketConnBloc, WebSocketConnState>(
+        builder: (context, state) {
+          if (state is WebSocketInitial || state is WebSocketConnecting) {
+            return _buildStatus(
+              context,
+              title: "Connecting...",
+              icon: Icons.sync,
+              color: Colors.amber[700],
+            );
+          } else if (state is WebSocketConnected) {
+            return _buildStatus(
+              context,
+              title: "Connected ✅",
+              subtitle: state.message,
+              icon: Icons.check_circle_outline,
+              color: Colors.green[600],
+            );
+          } else if (state is WebSocketDisconnected) {
+            return _buildStatus(
+              context,
+              title: "Disconnected ❌",
+              icon: Icons.cancel_outlined,
+              color: Colors.red[600],
+            );
+          } else if (state is WebSocketError) {
+            return _buildStatus(
+              context,
+              title: "Error Occurred",
+              subtitle: state.error,
+              icon: Icons.error_outline,
+              color: Colors.deepOrange,
+            );
+          }
+          return _buildStatus(
+            context,
+            title: "Unknown State ❓",
+            icon: Icons.help_outline,
+            color: Colors.grey,
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildStatus(
+    BuildContext context, {
+    required String title,
+    IconData? icon,
+    Color? color,
+    String? subtitle,
+  }) {
+    return Center(
+      child: Card(
+        elevation: 6,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        margin: const EdgeInsets.symmetric(horizontal: 24),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircleAvatar(
+                radius: 32,
+                backgroundColor: color?.withOpacity(0.1),
+                child: Icon(icon, color: color, size: 40),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+              if (subtitle != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.black54,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );

@@ -10,13 +10,14 @@ import 'package:systemize_pos/bloc/order_list_bloc/order_list_bolc.dart';
 import 'package:systemize_pos/bloc/order_list_bloc/order_list_event.dart';
 import 'package:systemize_pos/configs/color/color.dart';
 import 'package:systemize_pos/configs/components/app_bar.dart';
+import 'package:systemize_pos/configs/routes/routes_name.dart';
 import 'package:systemize_pos/data/models/cart_model/cart_model.dart';
 import 'package:systemize_pos/data/models/order_list_model/order_list_model.dart'
     as OrderModel;
 import 'package:systemize_pos/data/models/hive_model/products_model.dart'
     as ProductsModel;
+import 'package:systemize_pos/utils/extensions/string_extension.dart';
 import 'dart:developer' as developer;
-import 'package:systemize_pos/view/cart/cart_screen.dart';
 
 class OrderListScreen extends StatefulWidget {
   const OrderListScreen({super.key});
@@ -34,18 +35,18 @@ class _OrderListScreenState extends State<OrderListScreen> {
     if (orderVariations == null) {
       return ProductsModel.Variation(
         variationName: 'No Variation',
-        variationPrice: '',
+        variationPrice: '0.0',
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
     }
+    // if (orderVariations == null) return null;
     return ProductsModel.Variation(
       variationId: orderVariations.id,
-      // productId: null,
-      variationName: orderVariations.variationName,
-      variationPrice: orderVariations.variationPrice,
-      createdAt: DateTime.parse(orderVariations.createdAt.toString()),
-      updatedAt: DateTime.parse(orderVariations.updatedAt.toString()),
+      variationName: orderVariations.variationName ?? 'No Name',
+      variationPrice: orderVariations.variationPrice ?? '0.0',
+      createdAt: _parseDateTime(orderVariations.createdAt),
+      updatedAt: _parseDateTime(orderVariations.updatedAt),
     );
   }
 
@@ -53,10 +54,10 @@ class _OrderListScreenState extends State<OrderListScreen> {
     return ProductsModel.AddOn(
       addOnId: orderAddOn.addOnId,
       productId: orderAddOn.productId,
-      addOnName: orderAddOn.addOnName,
-      addOnPrice: orderAddOn.addOnPrice.toString(),
-      createdAt: DateTime.parse(orderAddOn.createdAt.toString()),
-      updatedAt: DateTime.parse(orderAddOn.updatedAt.toString()),
+      addOnName: orderAddOn.addOnName ?? 'Unknown AddOn',
+      addOnPrice: orderAddOn.addOnPrice?.toString() ?? '0.0',
+      createdAt: _parseDateTime(orderAddOn.createdAt),
+      updatedAt: _parseDateTime(orderAddOn.updatedAt),
     );
   }
 
@@ -65,13 +66,19 @@ class _OrderListScreenState extends State<OrderListScreen> {
       id: cartItem.productId.toString(),
       productId: cartItem.productId.toString(),
       productName: cartItem.title ?? 'Unknown Item',
-      productPrice: double.tryParse(cartItem.price.toString() ?? '0.0') ?? 0.0,
-      quantity: cartItem.qty ?? 0,
+      productPrice: double.tryParse(cartItem.price ?? '0.0') ?? 0.0,
+      quantity: cartItem.qty ?? 1,
       saleTax: 0.0,
       imageUrl: '',
-      variation: convertVariations(cartItem.variations),
-      addOns: cartItem.addOn!.map((addOn) => convertAddOn(addOn)).toList(),
-      category: cartItem.category,
+      // variations: cartItem.variations?.map(convertVariations).toList(),
+      //
+      variation: convertVariations(
+        cartItem.variations?.isNotEmpty == true
+            ? cartItem.variations!.first
+            : null,
+      ),
+      addOns: cartItem.addOn?.map(convertAddOn).toList() ?? [],
+      category: cartItem.category ?? '',
       categoryId: cartItem.categoryId,
       companyId: cartItem.companyId,
       kitchenId: cartItem.kitchenId,
@@ -79,6 +86,15 @@ class _OrderListScreenState extends State<OrderListScreen> {
       printerIp: cartItem.printerIp,
       productCode: cartItem.productCode,
     );
+  }
+
+  DateTime _parseDateTime(dynamic date) {
+    if (date == null) return DateTime.now();
+    try {
+      return DateTime.parse(date.toString());
+    } catch (e) {
+      return DateTime.now();
+    }
   }
 
   @override
@@ -107,7 +123,6 @@ class _OrderListScreenState extends State<OrderListScreen> {
             return const Center(child: CircularProgressIndicator());
           } else if (state is OrderListLoaded) {
             final orders = state.orders;
-            print(orders.length);
             if (orders.isEmpty) {
               return const Center(child: Text('No orders found.'));
             }
@@ -116,101 +131,163 @@ class _OrderListScreenState extends State<OrderListScreen> {
               itemCount: orders.length,
               itemBuilder: (context, index) {
                 final data = orders[index];
+
                 return Card(
+                  color: AppColors.customWhiteColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
-                    side: BorderSide(
-                      color: AppColors.customBlackColor.withOpacity(0.1),
-                    ),
                   ),
-                  elevation: 0,
-                  color: AppColors.customWhiteColor,
-                  shadowColor: AppColors.customShadowColor,
-                  margin: const EdgeInsets.all(5.0),
+                  elevation: 1,
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   child: ExpansionTile(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),
-                      side: BorderSide(
-                        color: AppColors.customBlackColor.withOpacity(0.1),
-                      ),
                     ),
-                    title: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    title: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(data.info?.customerName ?? 'N/A'),
-                            Text('Status: ${data.status}'),
-                          ],
+                        Text(
+                          data.info?.customerName?.capitalizeEachWord() ??
+                              'N/A',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
-                        const Spacer(),
-                        Text('Rs/${data.grandTotal.toString()}'),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Total: Rs ${data.grandTotal.toString()}",
+                          style: const TextStyle(
+                            color: Colors.black45,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ],
                     ),
-                    subtitle: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(data.info?.phone ?? ''),
-                        const Spacer(),
-                        Text('Date: ${data.orderDateTime ?? 'N/A'}'),
-                      ],
-                    ),
+                    subtitle: Text("Date: ${data.orderDateTime ?? 'N/A'}"),
                     children: [
                       const Divider(),
                       Padding(
-                        padding: const EdgeInsets.only(left: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Items:'),
-                            ...data.cartItems!.map(
-                              (item) => ListTile(
-                                title: Text(item.title ?? 'N/A'),
-                                trailing: Text(
-                                  'Qty: ${item.qty}, Price: ${item.price ?? '0.0'}',
+                            const Text(
+                              'Items:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            ...data.cartItems.map((item) {
+                              final variation =
+                                  item.variations?.isNotEmpty == true
+                                      ? item.variations!.first
+                                      : null;
+                              final addons = item.addOn ?? [];
+
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 12.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '• ${item.title ?? 'Item'}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    if (variation != null)
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          left: 12,
+                                          top: 2,
+                                        ),
+                                        child: Text(
+                                          'Variation: ${variation.variationName} - Rs ${variation.variationPrice}',
+                                          style: const TextStyle(
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                      ),
+                                    if (addons.isNotEmpty)
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          left: 12,
+                                          top: 2,
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children:
+                                              addons.map((addon) {
+                                                return Text(
+                                                  'Add-on: ${addon.addOnName} - Rs ${addon.addOnPrice}',
+                                                  style: const TextStyle(
+                                                    color: Colors.black87,
+                                                  ),
+                                                );
+                                              }).toList(),
+                                        ),
+                                      ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        left: 12,
+                                        top: 4,
+                                      ),
+                                      child: Text(
+                                        'Qty: ${item.qty}',
+                                        style: const TextStyle(
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                    ),
+                                    const Divider(height: 20),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  final List<Items> orderItems =
+                                      data.cartItems
+                                          .map(
+                                            (cartItem) =>
+                                                convertCartItemToItems(
+                                                  cartItem,
+                                                ),
+                                          )
+                                          .toList();
+                                  for (final item in orderItems) {
+                                    context.read<CartBloc>().add(
+                                      AddItemToCart(item),
+                                    );
+                                  }
+                                  Navigator.popAndPushNamed(
+                                    context,
+                                    RoutesName.cartScreen,
+                                  );
+                                },
+                                icon: const Icon(Icons.edit, size: 18),
+                                label: const Text('Edit Order'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.customThemeColor,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                 ),
                               ),
                             ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                TextButton(
-                                  onPressed: () {
-                                    final List<Items> orderItems =
-                                        data.cartItems!
-                                            .map(
-                                              (cartItem) =>
-                                                  convertCartItemToItems(
-                                                    cartItem,
-                                                  ),
-                                            )
-                                            .toList();
-                                    for (final item in orderItems) {
-                                      context.read<CartBloc>().add(
-                                        AddItemToCart(item),
-                                      );
-                                    }
-                                    // context.read<CartBloc>().add(AddItemToCart(orderItems));
-                                    developer.log(
-                                      'Added items to cart: ${orderItems.map((e) => e.toJson()).toList()}',
-                                    );
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => const CartScreen(),
-                                      ),
-                                    );
-                                  },
-                                  child: const Text(
-                                    'Edit Order',
-                                    style: TextStyle(
-                                      color: AppColors.customBlackColor,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                            const SizedBox(height: 8),
                           ],
                         ),
                       ),

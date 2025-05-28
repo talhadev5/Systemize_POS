@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:systemize_pos/bloc/navbar_bloc/navbar_bloc.dart';
 import 'package:systemize_pos/bloc/navbar_bloc/navbar_event.dart';
 import 'package:systemize_pos/bloc/navbar_bloc/navbar_state.dart';
+import 'package:systemize_pos/bloc/soket_connection/soket_con_bolc.dart';
+import 'package:systemize_pos/bloc/soket_connection/soket_con_state.dart';
 import 'package:systemize_pos/configs/color/color.dart';
 import 'package:systemize_pos/configs/components/app_bar.dart';
 import 'package:systemize_pos/configs/routes/routes_name.dart';
@@ -22,15 +24,34 @@ class CustomBottomNavBar extends StatefulWidget {
 class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
   final List<IconData> _icons = [
     Icons.dashboard,
-    Icons.shopping_cart,
+    // Icons.shopping_cart,
     Icons.person,
   ];
 
-  final List<String> _labels = ["Products", "Cart", "Profile"];
+  final List<String> _labels = ["Products", "Profile"];
   List<Widget>? _buildAppBarActions(int index) {
     switch (index) {
       case 0: // Products
         return [
+          BlocBuilder<WebSocketConnBloc, WebSocketConnState>(
+            builder: (context, state) {
+              IconData iconData = Icons.wifi_off;
+              Color iconColor = Colors.red;
+
+              if (state is WebSocketConnected) {
+                iconData = Icons.wifi;
+                iconColor = Colors.green;
+              }
+
+              return IconButton(
+                icon: Icon(iconData, color: iconColor),
+                onPressed: () {
+                  // Optional: Navigate to WebSocket Status page
+                  Navigator.pushNamed(context, RoutesName.webSocketSetting);
+                },
+              );
+            },
+          ),
           IconButton(
             icon: Icon(
               Icons.shopping_cart_checkout_outlined,
@@ -44,21 +65,21 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
       case 1: // Cart
         return [
           IconButton(
-            icon: Icon(Icons.history),
-            onPressed: () {
-              // Navigate to order history or similar
-            },
-          ),
-        ];
-      case 2: // Profile
-        return [
-          IconButton(
             icon: Icon(Icons.wifi),
             onPressed: () {
               Navigator.pushNamed(context, RoutesName.webSocketSetting);
             },
           ),
         ];
+      // case 2: // Profile
+      //   return [
+      //     IconButton(
+      //       icon: Icon(Icons.wifi),
+      //       onPressed: () {
+      //         Navigator.pushNamed(context, RoutesName.webSocketSetting);
+      //       },
+      //     ),
+      //   ];
       default:
         return null;
     }
@@ -67,7 +88,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
   final List<Widget> _pages = [
     ProductsPage(),
     // CartScreen(),
-    WebSocketStatusWidget(url: 'ws://192.168.192.2:8765'),
+    // WebSocketStatusWidget(url: 'ws://192.168.192.2:8765'),
     // WebSocketSettingsPage(),
     ProfileScreen(),
     // Center(child: Text('Profile')),

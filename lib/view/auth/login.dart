@@ -140,7 +140,7 @@ class LoginPage extends StatelessWidget {
 
                 // Show loader if loading
                 if (state.loginStatus == LoginStatus.loading)
-                  CustomLoader(color: AppColors.customThemeColor),
+                  CustomLoader(),
               ],
             );
           },

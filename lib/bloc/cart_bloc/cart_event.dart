@@ -33,20 +33,21 @@ class MoveHeldItemToCart extends CartEvent {
 class LoadHeldCart extends CartEvent {}
 
 class ClearHeldCart extends CartEvent {}
+
 class SubmitCartOrder extends CartEvent {
   final String? orderId;
-  final bool isNewOrder;
+  final bool? isNewOrder;
+  final String? customerName;
+  final String? orderNote;
+  final String? orderType;
+  final String? tableNo;
 
-  SubmitCartOrder({this.orderId, this.isNewOrder = false});
-}
-class SubmitCartOrderWithDetails extends CartEvent {
-  final String customerName;
-  final String orderNote;
-  final String orderType;
-
-  SubmitCartOrderWithDetails({
-    required this.customerName,
-    required this.orderNote,
-    required this.orderType,
+  SubmitCartOrder({
+    this.orderId,
+    this.isNewOrder = false,
+    this.customerName,
+    this.orderNote,
+    this.orderType,
+    this.tableNo,
   });
 }

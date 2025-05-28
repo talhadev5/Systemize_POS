@@ -5,6 +5,7 @@ import 'package:systemize_pos/view/auth/login.dart';
 import 'package:systemize_pos/view/cart/cart_screen.dart';
 import 'package:systemize_pos/view/splash/splash.dart';
 import 'package:systemize_pos/view/user_profile/order_list/order_list.dart';
+import 'package:systemize_pos/view/web_socket/socket_status.dart';
 import 'package:systemize_pos/view/web_socket/websocket_setting.dart';
 
 class Routes {
@@ -46,7 +47,10 @@ class Routes {
         return MaterialPageRoute(
           builder: (BuildContext context) => WebSocketSettingsPage(),
         );
-
+      case RoutesName.webSocketStatus:
+        return MaterialPageRoute(
+          builder: (BuildContext context) => WebSocketStatusWidget(),
+        );
       default:
         return MaterialPageRoute(
           builder: (_) {

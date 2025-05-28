@@ -7,7 +7,8 @@ class RoutesName {
   //home screen routes name
   static const String navBar = 'Nav_bar';
   static const String home = 'home_screen';
-  static const String cartScreen = 'cart_screen' ;
-  static const String webSocketSetting = ' web_Socket_Setting' ;
-    static const String orderList = 'order_List' ;
+  static const String cartScreen = 'cart_screen';
+  static const String webSocketSetting = ' web_Socket_Setting';
+  static const String orderList = 'order_List';
+  static const String webSocketStatus = ' web_Socket_Status';
 }

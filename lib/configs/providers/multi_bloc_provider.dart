@@ -6,6 +6,7 @@ import 'package:systemize_pos/bloc/order_list_bloc/order_list_bolc.dart';
 import 'package:systemize_pos/bloc/product_bloc/product_bloc.dart';
 import 'package:systemize_pos/bloc/product_details_bloc/product_details_bloc.dart';
 import 'package:systemize_pos/bloc/profile_bloc/profile_bloc.dart';
+import 'package:systemize_pos/bloc/soket_connection/soket_con_bolc.dart';
 import 'package:systemize_pos/bloc/web_socket_bloc/web_socket_bloc.dart';
 import 'package:systemize_pos/data/repositories/order_list_repo/order_list_repo.dart';
 
@@ -22,7 +23,12 @@ class MultiBlocProviders {
     BlocProvider<ProductDetailBloc>(create: (context) => ProductDetailBloc()),
     BlocProvider<CartBloc>(create: (context) => CartBloc()),
     BlocProvider<ProfileBloc>(create: (context) => ProfileBloc()),
-    BlocProvider<WebSocketSettingsBloc>( create: (context) => WebSocketSettingsBloc()),
-    BlocProvider<OrderListBloc>( create: (context) => OrderListBloc(repository: OrderRepository())),
+    BlocProvider<WebSocketSettingsBloc>(
+      create: (context) => WebSocketSettingsBloc(),
+    ),
+    BlocProvider<OrderListBloc>(
+      create: (context) => OrderListBloc(repository: OrderRepository()),
+    ),
+    BlocProvider<WebSocketConnBloc>(create: (context) => WebSocketConnBloc()),
   ];
 }
