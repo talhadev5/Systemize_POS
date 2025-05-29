@@ -162,7 +162,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     Emitter<CartState> emit,
   ) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    final websocketUrl = 'ws://192.168.192.2:8765';
+    final websocketUrl =  prefs.getString('websocket_url') ?? 'ws://192.168.192.2:8765';
     String? uniqueId = prefs.getString('worker_unique_id');
 
     debugPrint("..............Worket Id: $uniqueId  .................");
@@ -242,7 +242,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
             "waiter": userId ?? "",
             "table_no": event.tableNo ?? "",
             "table_id": event.tableNo ?? "",
-            "table_location":event.tableNo?? "",
+            "table_location": event.tableNo ?? "",
             "type": event.orderType,
             "orderNote": event.orderNote,
             "customer_id": "",

@@ -74,7 +74,8 @@ class WebSocketStatusWidget extends StatelessWidget {
   }) {
     return Center(
       child: Card(
-        elevation: 6,
+        color: AppColors.customWhiteColor,
+        elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         margin: const EdgeInsets.symmetric(horizontal: 24),
         child: Padding(
@@ -100,10 +101,7 @@ class WebSocketStatusWidget extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   subtitle,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.black54,
-                  ),
+                  style: const TextStyle(fontSize: 16, color: Colors.black54),
                   textAlign: TextAlign.center,
                 ),
               ],

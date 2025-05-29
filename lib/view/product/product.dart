@@ -5,7 +5,6 @@ import 'package:systemize_pos/bloc/product_bloc/product_bloc.dart';
 import 'package:systemize_pos/bloc/product_bloc/product_event.dart';
 import 'package:systemize_pos/bloc/product_bloc/product_state.dart';
 import 'package:systemize_pos/configs/color/color.dart';
-import 'package:systemize_pos/configs/components/app_bar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:systemize_pos/configs/widgets/custom_loader.dart';
 import 'package:systemize_pos/utils/app_url.dart';
@@ -126,6 +125,7 @@ class _ProductsPageState extends State<ProductsPage> {
                   }
 
                   return RefreshIndicator(
+                    color: AppColors.customThemeColor,
                     onRefresh: () async {
                       context.read<ProductBloc>().add(
                         ProductApi(forceRefresh: true),
@@ -175,6 +175,7 @@ class _ProductsPageState extends State<ProductsPage> {
                                     builder: (context) {
                                       return ProductDetailSheet(
                                         product: product,
+                                        rootContext: context,
                                       );
                                     },
                                   );

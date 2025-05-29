@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:systemize_pos/bloc/cart_bloc/cart_bloc.dart';
+import 'package:systemize_pos/bloc/cart_bloc/cart_state.dart';
 import 'package:systemize_pos/bloc/navbar_bloc/navbar_bloc.dart';
 import 'package:systemize_pos/bloc/navbar_bloc/navbar_event.dart';
 import 'package:systemize_pos/bloc/navbar_bloc/navbar_state.dart';
@@ -8,11 +10,9 @@ import 'package:systemize_pos/bloc/soket_connection/soket_con_state.dart';
 import 'package:systemize_pos/configs/color/color.dart';
 import 'package:systemize_pos/configs/components/app_bar.dart';
 import 'package:systemize_pos/configs/routes/routes_name.dart';
-import 'package:systemize_pos/view/cart/cart_screen.dart';
 import 'package:systemize_pos/view/product/product.dart';
 import 'package:systemize_pos/view/user_profile/user_profile.dart';
-import 'package:systemize_pos/view/web_socket/socket_status.dart';
-import 'package:systemize_pos/view/web_socket/websocket_setting.dart';
+import 'package:badges/badges.dart' as badges;
 
 class CustomBottomNavBar extends StatefulWidget {
   const CustomBottomNavBar({super.key});
@@ -52,13 +52,35 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
               );
             },
           ),
-          IconButton(
-            icon: Icon(
-              Icons.shopping_cart_checkout_outlined,
-              color: AppColors.customThemeColor,
-            ),
-            onPressed: () {
-              Navigator.pushNamed(context, RoutesName.cartScreen);
+          BlocBuilder<CartBloc, CartState>(
+            builder: (context, cartState) {
+              int itemCount =
+                  cartState.totalItems; // Change based on your state
+
+              return badges.Badge(
+                showBadge: true,
+                badgeContent: Text(
+                  '$itemCount',
+                  style: const TextStyle(color: Colors.white, fontSize: 10),
+                ),
+                position: badges.BadgePosition.topEnd(top: 0, end: 2),
+                badgeAnimation: const badges.BadgeAnimation.slide(
+                  animationDuration: Duration(milliseconds: 300),
+                ),
+                badgeStyle: const badges.BadgeStyle(
+                  badgeColor: Colors.red,
+                  padding: EdgeInsets.all(5),
+                ),
+                child: IconButton(
+                  icon: Icon(
+                    Icons.shopping_cart_checkout_outlined,
+                    color: AppColors.customThemeColor,
+                  ),
+                  onPressed: () {
+                    Navigator.pushNamed(context, RoutesName.cartScreen);
+                  },
+                ),
+              );
             },
           ),
         ];

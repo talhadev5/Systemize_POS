@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_null_comparison
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,8 +19,14 @@ import 'package:systemize_pos/utils/extensions/string_extension.dart';
 
 class ProductDetailSheet extends StatefulWidget {
   final Product product;
+  final BuildContext rootContext;
 
-  const ProductDetailSheet({Key? key, required this.product}) : super(key: key);
+  const ProductDetailSheet({
+    super.key,
+    required this.product,
+    required this.rootContext,
+    s,
+  });
 
   @override
   State<ProductDetailSheet> createState() => _ProductDetailSheetState();
@@ -225,23 +233,14 @@ class _ProductDetailSheetState extends State<ProductDetailSheet> {
                       onPressed: () {
                         // Variation Validation
 
-                        // if ((productState.selectedVariations.isEmpty)) {
-                        //   CustomSnackbar.show(
-                        //     context: context,
-                        //     message: 'Please select a variation',
-                        //     icon: Icons.error,
-                        //   );
-                        //   return;
-                        // }
-
                         final selectedVariation =
                             productState.selectedVariations.isNotEmpty
                                 ? productState.selectedVariations.first
                                 : null;
-                        if ((product.variations?.isNotEmpty ?? false) &&
+                        if ((product.variations.isNotEmpty ?? false) &&
                             selectedVariation == null) {
                           CustomSnackbar.show(
-                            context: context,
+                            context: widget.rootContext,
                             message: 'Please select a variation',
                             icon: Icons.error,
                           );

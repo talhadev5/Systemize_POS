@@ -237,20 +237,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     style: TextButton.styleFrom(foregroundColor: Colors.grey),
                     child: const Text('Cancel'),
                   ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.customThemeColor,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.of(ctx).pop();
-                      context.read<LoginBloc>().add(LogoutEvent());
-                      // Navigator.pushReplacementNamed(context, RoutesName.login);
+                  BlocBuilder<LoginBloc, LoginState>(
+                    builder: (context, state) {
+                      return ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.customThemeColor,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.of(ctx).pop();
+                          context.read<LoginBloc>().add(LogoutEvent());
+                          if (state.loginStatus == LoginStatus.loggedOut) {
+                            Navigator.pushReplacementNamed(
+                              context,
+                              RoutesName.login,
+                            );
+                          }
+                        },
+                        child: const Text('Log Out'),
+                      );
                     },
-                    child: const Text('Log Out'),
                   ),
                 ],
               ),

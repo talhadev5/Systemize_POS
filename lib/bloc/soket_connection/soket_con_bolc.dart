@@ -20,7 +20,8 @@ class WebSocketConnBloc extends Bloc<WebSocketConnEvent, WebSocketConnState> {
     on<DisconnectWebSocket>(_onDisconnect);
     on<WebSocketMessageReceived>(_onMessageReceived);
 
-    add(ConnectWebSocket('ws://192.168.192.2:8765'));
+    // add(ConnectWebSocket('ws://192.168.192.2:8765'));
+    _initWebSocket();
   }
 
   Future<void> _onConnect(
@@ -51,13 +52,6 @@ class WebSocketConnBloc extends Bloc<WebSocketConnEvent, WebSocketConnState> {
       );
 
       // Wait briefly to ensure connection is established
-      // await Future.delayed(Duration(milliseconds: 300));
-
-      // // Generate unique ID (replace this with your own strategy if needed)
-      // String uniqueId =
-      //     "worker-${DateTime.now().millisecondsSinceEpoch % 10000}";
-      // log(uniqueId);
-      // Retrieve or generate unique ID
       final prefs = await SharedPreferences.getInstance();
       String? uniqueId = prefs.getString('worker_unique_id');
 
@@ -96,6 +90,14 @@ class WebSocketConnBloc extends Bloc<WebSocketConnEvent, WebSocketConnState> {
   ) {
     // You can handle special messages here if needed
     emit(WebSocketConnected(event.message));
+  }
+
+  void _initWebSocket() async {
+    final prefs = await SharedPreferences.getInstance();
+    final wsUrl =
+        prefs.getString('websocket_url') ??
+        'ws://192.168.192.2:8765'; // fallback URL
+    add(ConnectWebSocket(wsUrl));
   }
 
   @override

@@ -1,11 +1,8 @@
 import 'dart:convert';
 import 'dart:developer';
-
 import 'package:bloc/bloc.dart';
-import 'package:flutter/material.dart';
 import 'package:systemize_pos/bloc/auth_%20bloc/login_bloc/login_event.dart';
 import 'package:systemize_pos/bloc/auth_%20bloc/login_bloc/login_state.dart';
-import 'package:systemize_pos/configs/routes/routes_name.dart';
 import 'package:systemize_pos/data/models/users/user_model.dart';
 import 'package:systemize_pos/data/services/api_service.dart';
 import 'package:systemize_pos/data/services/storage/local_storage.dart';
@@ -118,7 +115,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       executionMethod: (bool success, dynamic responseData) async {
         if (success) {
           // Clear local storage after successful logout
-          await LocalStorage.removeAll();
+
           // Navigator.pushReplacementNamed(context, RoutesName.login);
           emit(
             state.copyWith(
@@ -135,6 +132,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
             ),
           );
         }
+        await LocalStorage.removeAll();
       },
     );
   }

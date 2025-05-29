@@ -8,7 +8,9 @@ class CustomSnackbar {
     IconData? icon,
     Duration duration = const Duration(seconds: 3),
   }) {
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final scaffoldMessenger = ScaffoldMessenger.of(
+      Navigator.of(context, rootNavigator: true).context,
+    );
 
     final snackBar = SnackBar(
       backgroundColor: Colors.transparent,

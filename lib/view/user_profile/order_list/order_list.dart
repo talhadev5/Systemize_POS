@@ -11,6 +11,7 @@ import 'package:systemize_pos/bloc/order_list_bloc/order_list_event.dart';
 import 'package:systemize_pos/configs/color/color.dart';
 import 'package:systemize_pos/configs/components/app_bar.dart';
 import 'package:systemize_pos/configs/routes/routes_name.dart';
+import 'package:systemize_pos/configs/widgets/custom_loader.dart';
 import 'package:systemize_pos/data/models/cart_model/cart_model.dart';
 import 'package:systemize_pos/data/models/order_list_model/order_list_model.dart'
     as OrderModel;
@@ -120,7 +121,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
       body: BlocBuilder<OrderListBloc, OrderListState>(
         builder: (context, state) {
           if (state is OrderListLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const DefultLoader();
           } else if (state is OrderListLoaded) {
             final orders = state.orders;
             if (orders.isEmpty) {
