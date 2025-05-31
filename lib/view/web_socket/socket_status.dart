@@ -8,7 +8,7 @@ import 'package:systemize_pos/configs/components/app_bar.dart';
 
 class WebSocketStatusWidget extends StatelessWidget {
   // final String url;
-  const WebSocketStatusWidget({super.key,});
+  const WebSocketStatusWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +34,7 @@ class WebSocketStatusWidget extends StatelessWidget {
             return _buildStatus(
               context,
               title: "Connected ✅",
-              subtitle: state.message,
+              subtitle: 'WebSocket connection established successfully',
               icon: Icons.check_circle_outline,
               color: Colors.green[600],
             );

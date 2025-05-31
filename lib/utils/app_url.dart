@@ -1,7 +1,8 @@
 // .......API baseUrl...........//
-const String baseUrl = 'https://pos.tfourplus.com/api';
+const String baseUrl = 'https://adminpos.thewebconcept.com/api';
+// 'https://pos.tfourplus.com/api';
 // .........Image/video/file base url................//
-const String filesBaseUrl = 'https://pos.tfourplus.com/';
+const String filesBaseUrl = 'https://adminpos.thewebconcept.com/';
 // .......*Authentications Url*...........//
 const String registerUser = '$baseUrl/register';
 const String loginUser = '$baseUrl/login';
@@ -20,4 +21,3 @@ const String getProducts = '$baseUrl/getProducts';
 // const String appDashboard = '$baseUrl/appDashboard';
 // const String getCompanyDetails = '$baseUrl/getCompanyDetails';
 // const String updateCompanyDetails = '$baseUrl/updateCompanyDetails';
-

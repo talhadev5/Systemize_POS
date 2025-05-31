@@ -11,6 +11,7 @@ import 'package:systemize_pos/configs/routes/routes_name.dart';
 import 'package:systemize_pos/configs/widgets/custom_loader.dart';
 import 'package:systemize_pos/configs/widgets/custom_sankbar.dart';
 import 'package:systemize_pos/data/models/users/user_model.dart';
+import 'package:systemize_pos/utils/app_url.dart';
 import 'package:systemize_pos/utils/extensions/string_extension.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -134,7 +135,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             backgroundColor: Colors.grey.shade200,
             child: ClipOval(
               child: CachedNetworkImage(
-                imageUrl: "https://example.com${user.userImage ?? ''}",
+                imageUrl: "$filesBaseUrl${user.userImage ?? ''}",
                 width: 80,
                 height: 80,
                 fit: BoxFit.cover,
@@ -151,7 +152,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  user.name ?? 'Jone Doe',
+                  user.name.toString().capitalizeEachWord(),
                   style: TextStyle(
                     color: AppColors.customBlackColor,
                     fontSize: 18,

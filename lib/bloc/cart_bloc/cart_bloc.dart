@@ -39,20 +39,25 @@ class CartBloc extends Bloc<CartEvent, CartState> {
   }
 
   void _onAddItemToCart(AddItemToCart event, Emitter<CartState> emit) async {
+  
     final updatedItems = List<Items>.from(state.cartItems);
-    final index = updatedItems.indexWhere(
-      (item) =>
-          item.productId == event.item.productId &&
-          _compareVariations(item.variation, event.item.variation) &&
-          _addOnsEqual(item.addOns, event.item.addOns),
-    );
 
-    if (index != -1) {
-      updatedItems[index].quantity += event.item.quantity;
-      updatedItems[index].saleTax += event.item.saleTax;
-      updatedItems[index].addOns.addAll(event.item.addOns);
-    } else {
-      updatedItems.add(event.item);
+    for (final newItem in event.item) {
+      final index = updatedItems.indexWhere(
+        (item) =>
+            item.productId == newItem.productId &&
+            _compareVariations(item.variation, newItem.variation) &&
+            _addOnsEqual(item.addOns, newItem.addOns),
+      );
+
+      if (index != -1) {
+        updatedItems[index].quantity += newItem.quantity;
+        updatedItems[index].saleTax += newItem.saleTax;
+        updatedItems[index].addOns.addAll(newItem.addOns);
+        
+      } else {
+        updatedItems.add(newItem);
+      }
     }
 
     await CartService.saveCart(updatedItems);
@@ -162,7 +167,8 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     Emitter<CartState> emit,
   ) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    final websocketUrl =  prefs.getString('websocket_url') ?? 'ws://192.168.192.2:8765';
+    final websocketUrl =
+        prefs.getString('websocket_url') ?? 'ws://192.168.192.2:8765';
     String? uniqueId = prefs.getString('worker_unique_id');
 
     debugPrint("..............Worket Id: $uniqueId  .................");

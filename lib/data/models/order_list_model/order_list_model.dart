@@ -17,7 +17,7 @@ class OrderListModel {
     final _data = <String, dynamic>{};
     _data['success'] = success;
     _data['ordersTotal'] = ordersTotal;
-    _data['data'] = data!.map((e) => e.toJson()).toList();
+    _data['orders'] = data!.map((e) => e.toJson()).toList();
     return _data;
   }
 }

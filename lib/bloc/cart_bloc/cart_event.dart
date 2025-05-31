@@ -6,7 +6,7 @@ abstract class CartEvent {}
 class LoadCart extends CartEvent {}
 
 class AddItemToCart extends CartEvent {
-  final Items item;
+  final List<Items> item;
   AddItemToCart(this.item);
 }
 

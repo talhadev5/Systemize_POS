@@ -32,13 +32,12 @@ class ProductDetailBloc extends Bloc<ProductDetailEvent, ProductDetailState> {
     }
     emit(state.copyWith(selectedAddOns: updatedAddOns));
   }
-  
+
   // Clear all selections
   void _onClearSelections(
     ClearSelectionsEvent event,
     Emitter<ProductDetailState> emit,
   ) {
-    emit(const ProductDetailState());
+    emit(state.copyWith(selectedVariations: [], selectedAddOns: []));
   }
 }
-

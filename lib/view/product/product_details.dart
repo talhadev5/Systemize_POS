@@ -10,7 +10,6 @@ import 'package:systemize_pos/bloc/product_details_bloc/product_deatils_event.da
 import 'package:systemize_pos/bloc/product_details_bloc/product_details_bloc.dart';
 import 'package:systemize_pos/bloc/product_details_bloc/product_details_state.dart';
 import 'package:systemize_pos/configs/color/color.dart';
-import 'package:systemize_pos/configs/widgets/custom_sankbar.dart';
 import 'package:systemize_pos/data/models/cart_model/cart_model.dart';
 import 'package:systemize_pos/data/models/hive_model/products_model.dart';
 import 'package:systemize_pos/utils/app_url.dart';
@@ -233,20 +232,23 @@ class _ProductDetailSheetState extends State<ProductDetailSheet> {
                       onPressed: () {
                         // Variation Validation
 
+                        // final selectedVariation =
+                        //     productState.selectedVariations.isNotEmpty
+                        //         ? productState.selectedVariations.first
+                        //         : null;
                         final selectedVariation =
-                            productState.selectedVariations.isNotEmpty
-                                ? productState.selectedVariations.first
-                                : null;
-                        if ((product.variations.isNotEmpty ?? false) &&
-                            selectedVariation == null) {
-                          CustomSnackbar.show(
-                            context: widget.rootContext,
-                            message: 'Please select a variation',
-                            icon: Icons.error,
-                          );
-                          return;
-                        }
-                        final selectedAddOns = productState.selectedAddOns;
+                            productState.selectedVariations.toList();
+                        // if ((product.variations.isNotEmpty ?? false) &&
+                        //     selectedVariation == null) {
+                        //   CustomSnackbar.show(
+                        //     context: widget.rootContext,
+                        //     message: 'Please select a variation',
+                        //     icon: Icons.error,
+                        //   );
+                        //   return;
+                        // }
+                        final selectedAddOns =
+                            productState.selectedAddOns.toList();
 
                         final cartItem = Items(
                           id: product.productId.toString(),
@@ -257,7 +259,10 @@ class _ProductDetailSheetState extends State<ProductDetailSheet> {
                           quantity: 1,
                           saleTax: 0.0,
                           imageUrl: '$filesBaseUrl/${product.productImage}',
-                          variation: selectedVariation,
+                          variation:
+                              selectedVariation.isNotEmpty
+                                  ? selectedVariation.first
+                                  : null,
                           addOns: selectedAddOns,
                           category: product.category,
                           categoryId: product.categoryId,
@@ -269,8 +274,12 @@ class _ProductDetailSheetState extends State<ProductDetailSheet> {
                         );
 
                         // Add to cart
-                        context.read<CartBloc>().add(AddItemToCart(cartItem));
+                        context.read<CartBloc>().add(AddItemToCart([cartItem]));
                         context.read<CartBloc>().add(LoadCart());
+                        context.read<ProductDetailBloc>().add(
+                          ClearSelectionsEvent(),
+                        );
+
                         Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(

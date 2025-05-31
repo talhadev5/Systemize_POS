@@ -19,5 +19,5 @@ class ProductDetailState {
     
     );
   }
-  
+  List<Object?> get props => [selectedVariations, selectedAddOns];
 }

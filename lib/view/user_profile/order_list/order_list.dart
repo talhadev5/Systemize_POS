@@ -63,22 +63,22 @@ class _OrderListScreenState extends State<OrderListScreen> {
   }
 
   Items convertCartItemToItems(OrderModel.CartItem cartItem) {
+    final variation =
+        (cartItem.variations != null && cartItem.variations!.isNotEmpty)
+            ? convertVariations(cartItem.variations!.first)
+            : null;
     return Items(
       id: cartItem.productId.toString(),
       productId: cartItem.productId.toString(),
       productName: cartItem.title ?? 'Unknown Item',
       productPrice: double.tryParse(cartItem.price ?? '0.0') ?? 0.0,
-      quantity: cartItem.qty ?? 1,
+      quantity: int.parse(cartItem.qty.toString()),
       saleTax: 0.0,
       imageUrl: '',
-      // variations: cartItem.variations?.map(convertVariations).toList(),
+      // variation: cartItem.variations?.map(convertVariations).toList(),
       //
-      variation: convertVariations(
-        cartItem.variations?.isNotEmpty == true
-            ? cartItem.variations!.first
-            : null,
-      ),
-      addOns: cartItem.addOn?.map(convertAddOn).toList() ?? [],
+      variation: variation,
+      addOns: cartItem.addOn.map(convertAddOn).toList() ?? [],
       category: cartItem.category ?? '',
       categoryId: cartItem.categoryId,
       companyId: cartItem.companyId,
@@ -112,10 +112,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
         text: 'Order List',
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(
-            Icons.arrow_back_ios,
-            color: AppColors.customThemeColor,
-          ),
+          icon: const Icon(Icons.arrow_back, color: AppColors.customThemeColor),
         ),
       ),
       body: BlocBuilder<OrderListBloc, OrderListState>(
@@ -185,10 +182,12 @@ class _OrderListScreenState extends State<OrderListScreen> {
                             ),
                             const SizedBox(height: 8),
                             ...data.cartItems.map((item) {
-                              final variation =
-                                  item.variations?.isNotEmpty == true
-                                      ? item.variations!.first
-                                      : null;
+                              // final variation =
+                              //     (item.variations != null &&
+                              //             item.variations!.isNotEmpty)
+                              //         ? item.variations!.first
+                              //         : null;
+                              final variations = item.variations ?? [];
                               final addons = item.addOn ?? [];
 
                               return Padding(
@@ -197,23 +196,28 @@ class _OrderListScreenState extends State<OrderListScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '• ${item.title ?? 'Item'}',
+                                      '• ${item.title.toString().capitalizeEachWord()}',
                                       style: const TextStyle(
                                         fontWeight: FontWeight.w600,
                                         fontSize: 15,
                                       ),
                                     ),
-                                    if (variation != null)
+                                    if (variations.isNotEmpty)
                                       Padding(
                                         padding: const EdgeInsets.only(
                                           left: 12,
                                           top: 2,
                                         ),
-                                        child: Text(
-                                          'Variation: ${variation.variationName} - Rs ${variation.variationPrice}',
-                                          style: const TextStyle(
-                                            color: Colors.black87,
-                                          ),
+                                        child: Column(
+                                          children:
+                                              variations.map((variation) {
+                                                return Text(
+                                                  'Variation: ${variation.variationName ?? 'Unknown'} - Rs ${variation.variationPrice ?? '0.0'}',
+                                                  style: const TextStyle(
+                                                    color: Colors.black87,
+                                                  ),
+                                                );
+                                              }).toList(),
                                         ),
                                       ),
                                     if (addons.isNotEmpty)
@@ -267,11 +271,14 @@ class _OrderListScreenState extends State<OrderListScreen> {
                                                 ),
                                           )
                                           .toList();
-                                  for (final item in orderItems) {
-                                    context.read<CartBloc>().add(
-                                      AddItemToCart(item),
-                                    );
-                                  }
+
+                                  // Clear cart first to avoid overlapping items or variations
+                                  context.read<CartBloc>().add(ClearCart());
+                                  // for (final item in orderItems) {
+                                  context.read<CartBloc>().add(
+                                    AddItemToCart(orderItems),
+                                  );
+
                                   Navigator.popAndPushNamed(
                                     context,
                                     RoutesName.cartScreen,
