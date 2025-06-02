@@ -8,6 +8,7 @@ class CartState extends Equatable {
   final String customerName;
   final String orderNote;
   final String orderType;
+  final int? loadedOrderId;
 
   const CartState({
     this.cartItems = const [],
@@ -15,6 +16,7 @@ class CartState extends Equatable {
     this.customerName = '',
     this.orderNote = '',
     this.orderType = '',
+    this.loadedOrderId,
   });
 
   double get grandTotal => cartItems.fold(0, (sum, item) => sum + item.total);
@@ -29,6 +31,7 @@ class CartState extends Equatable {
     String? customerName,
     String? orderNote,
     String? orderType,
+    int? loadedOrderId,
   }) {
     return CartState(
       cartItems: cartItems ?? this.cartItems,
@@ -36,6 +39,7 @@ class CartState extends Equatable {
       customerName: customerName ?? this.customerName,
       orderNote: orderNote ?? this.orderNote,
       orderType: orderType ?? this.orderType,
+      loadedOrderId: loadedOrderId ?? this.loadedOrderId,
     );
   }
 
@@ -46,6 +50,7 @@ class CartState extends Equatable {
     customerName,
     orderNote,
     orderType,
+    loadedOrderId,
   ];
 }
 

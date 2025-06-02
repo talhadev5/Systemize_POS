@@ -51,3 +51,9 @@ class SubmitCartOrder extends CartEvent {
     this.tableNo,
   });
 }
+
+class LoadOrderId extends CartEvent {
+  final int orderId;
+  LoadOrderId(this.orderId);
+
+}

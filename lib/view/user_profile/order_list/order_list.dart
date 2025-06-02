@@ -196,7 +196,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '• ${item.title.toString().capitalizeEachWord()}',
+                                      '• ${item.title.toString().capitalizeEachWord()}order id : ${data.orderId}',
                                       style: const TextStyle(
                                         fontWeight: FontWeight.w600,
                                         fontSize: 15,
@@ -272,9 +272,30 @@ class _OrderListScreenState extends State<OrderListScreen> {
                                           )
                                           .toList();
 
-                                  // Clear cart first to avoid overlapping items or variations
-                                  context.read<CartBloc>().add(ClearCart());
-                                  // for (final item in orderItems) {
+                                  final rawOrderId = 20255944;
+                                  if (rawOrderId == null) {
+                                    developer.log(
+                                      '❌ orderId is null. Cannot proceed.',
+                                    );
+                                    return;
+                                  }
+
+                                  final orderId = int.tryParse(
+                                    rawOrderId.toString(),
+                                  );
+                                  if (orderId == null) {
+                                    developer.log(
+                                      '❌ Failed to parse orderId: $rawOrderId',
+                                    );
+                                    return;
+                                  }
+
+                                  developer.log('✅ Parsed orderId: $orderId');
+                                  context.read<CartBloc>().add(
+                                    LoadOrderId(orderId),
+                                  );
+
+                                  // context.read<CartBloc>().add(ClearCart());
                                   context.read<CartBloc>().add(
                                     AddItemToCart(orderItems),
                                   );
@@ -284,6 +305,46 @@ class _OrderListScreenState extends State<OrderListScreen> {
                                     RoutesName.cartScreen,
                                   );
                                 },
+
+                                // onPressed: () {
+                                //   final List<Items> orderItems =
+                                //       data.cartItems
+                                //           .map(
+                                //             (cartItem) =>
+                                //                 convertCartItemToItems(
+                                //                   cartItem,
+                                //                 ),
+                                //           )
+                                //           .toList();
+                                //   final orderId = int.tryParse(
+                                //     data.orderId?.toString() ?? '',
+                                //   );
+
+                                //   if (orderId != null) {
+                                //     developer.log('Id Have:: ${data.orderId}');
+                                //     context.read<CartBloc>().add(
+                                //       LoadOrderId(orderId),
+                                //     );
+                                //   } else {
+                                //     developer.log(
+                                //       'Error: Failed to parse orderId: ${data.orderId}',
+                                //     );
+                                //   }
+
+                                //   // Clear cart first to avoid overlapping items or variations
+                                //   context.read<CartBloc>().add(ClearCart());
+
+                                //   // for (final item in orderItems) {
+                                //   context.read<CartBloc>().add(
+                                //     AddItemToCart(orderItems),
+                                //   );
+
+                                //   Navigator.popAndPushNamed(
+                                //     context,
+                                //     RoutesName.cartScreen,
+                                //     arguments: data.orderId,
+                                //   );
+                                // },
                                 icon: const Icon(Icons.edit, size: 18),
                                 label: const Text('Edit Order'),
                                 style: ElevatedButton.styleFrom(

@@ -6,7 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:systemize_pos/bloc/cart_bloc/cart_event.dart';
-import 'package:systemize_pos/bloc/cart_bloc/cart_state.dart';
+import 'package:systemize_pos/bloc/cart_bloc/cart_state.dart' hide LoadOrderId;
 import 'package:systemize_pos/data/models/cart_model/cart_model.dart';
 import 'package:systemize_pos/data/models/hive_model/products_model.dart';
 import 'package:systemize_pos/data/models/users/user_model.dart';
@@ -26,6 +26,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     on<MoveHeldItemToCart>(_onMoveHeldItemToCart);
     on<ClearHeldCart>(_onClearHeldCart);
     on<SubmitCartOrder>(_onSubmitCartOrder);
+    on<LoadOrderId>(_onLoadOrderId);
   }
 
   Future<void> _onLoadCart(LoadCart event, Emitter<CartState> emit) async {
@@ -39,7 +40,6 @@ class CartBloc extends Bloc<CartEvent, CartState> {
   }
 
   void _onAddItemToCart(AddItemToCart event, Emitter<CartState> emit) async {
-  
     final updatedItems = List<Items>.from(state.cartItems);
 
     for (final newItem in event.item) {
@@ -54,7 +54,6 @@ class CartBloc extends Bloc<CartEvent, CartState> {
         updatedItems[index].quantity += newItem.quantity;
         updatedItems[index].saleTax += newItem.saleTax;
         updatedItems[index].addOns.addAll(newItem.addOns);
-        
       } else {
         updatedItems.add(newItem);
       }
@@ -161,6 +160,10 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     return true;
   }
 
+  void _onLoadOrderId(LoadOrderId event, Emitter<CartState> emit) {
+    emit(state.copyWith(loadedOrderId: event.orderId));
+  }
+
   // submit order ............
   Future<void> _onSubmitCartOrder(
     SubmitCartOrder event,
@@ -170,7 +173,10 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     final websocketUrl =
         prefs.getString('websocket_url') ?? 'ws://192.168.192.2:8765';
     String? uniqueId = prefs.getString('worker_unique_id');
+    int? loadedOrderId = state.loadedOrderId;
 
+    int? orderId;
+    debugPrint("Loaded Order ID: $loadedOrderId and ${orderId.toString()}");
     debugPrint("..............Worket Id: $uniqueId  .................");
     debugPrint("..............websoket url: $websocketUrl .................");
     if (websocketUrl.isEmpty) {
@@ -226,15 +232,26 @@ class CartBloc extends Bloc<CartEvent, CartState> {
 
       debugPrint('Cart contains ${state.cartItems.length} items.');
 
-      int orderId =
-          event.orderId != null
-              ? int.tryParse(event.orderId!) ??
-                  int.parse(
-                    "${DateTime.now().year}${Random().nextInt(9999).toString().padLeft(4, '0')}",
-                  )
-              : int.parse(
-                "${DateTime.now().year}${Random().nextInt(9999).toString().padLeft(4, '0')}",
-              );
+      if (loadedOrderId != null) {
+        orderId =
+            int.tryParse(loadedOrderId.toString()) ??
+            int.parse(
+              "${DateTime.now().year}${Random().nextInt(9999).toString().padLeft(4, '0')}",
+            );
+      } else {
+        orderId = int.parse(
+          "${DateTime.now().year}${Random().nextInt(9999).toString().padLeft(4, '0')}",
+        );
+      }
+      // int orderId =
+      //     event.orderId != null
+      //         ? int.tryParse(event.orderId!) ??
+      //             int.parse(
+      //               "${DateTime.now().year}${Random().nextInt(9999).toString().padLeft(4, '0')}",
+      //             )
+      //         : int.parse(
+      //           "${DateTime.now().year}${Random().nextInt(9999).toString().padLeft(4, '0')}",
+      //         );
       Map<String, dynamic> data = {
         "reqType": "message",
         "to": "main",
@@ -322,21 +339,8 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       // Send the order data
       channel.sink.add(orderJson);
       debugPrint('Order sent via WebSocket');
-
+      add(ClearCart());
       // Optionally wait for a response
-      // final response = await channel.stream.first;
-      // debugPrint('WebSocket response: $response');
-
-      // await channel.sink.close();
-      // debugPrint("WebSocket closed.");
-
-      // // Clear SharedPreferences after success
-      // await _clearSharedPreferences();
-      // debugPrint("SharedPreferences cleared.");
-      // add(ClearCart());
-
-      // emit(CartSubmitSuccess());
-
       final response = await channel.stream.first;
       debugPrint('WebSocket response: $response');
 
@@ -347,6 +351,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       } else {
         emit(CartSubmitFailure('Order failed: $response'));
       }
+      // add(ClearCart());
     } catch (e) {
       debugPrint("WebSocket error: $e");
       // await channel.sink.close();

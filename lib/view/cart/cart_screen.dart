@@ -1,4 +1,7 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:systemize_pos/bloc/cart_bloc/cart_bloc.dart';
 import 'package:systemize_pos/bloc/cart_bloc/cart_event.dart';
@@ -19,6 +22,7 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
+  int? orderId;
   @override
   void initState() {
     super.initState();
@@ -32,235 +36,265 @@ class _CartScreenState extends State<CartScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(kToolbarHeight),
-
-        child: BlocBuilder<CartBloc, CartState>(
-          builder: (context, state) {
-            return CustomAppBar(
-              leading: IconButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                icon: Icon(Icons.arrow_back, color: AppColors.customThemeColor),
-              ),
-              text: 'Cart',
-              actions: [
-                if (state.cartItems.isNotEmpty)
-                  IconButton(
-                    icon: const Icon(
-                      Icons.delete,
-                      color: AppColors.customThemeColor,
-                    ),
-                    onPressed: () => context.read<CartBloc>().add(ClearCart()),
-                  ),
-                if (state.heldItems.isNotEmpty)
-                  IconButton(
-                    icon: const Icon(
-                      Icons.pause_circle,
-                      color: AppColors.customThemeColor,
-                    ),
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder:
-                            (context) => _buildHeldCartBottomSheet(context),
-                      );
-                    },
-                  ),
-              ],
-            );
-          },
-        ),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor:
+            AppColors.customThemeColor, // Set your desired color here
+        statusBarIconBrightness: Brightness.light, // For white icons
+        statusBarBrightness: Brightness.dark, // iOS only
       ),
 
-      body: BlocBuilder<CartBloc, CartState>(
-        builder: (context, state) {
-          if (state.cartItems.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.shopping_cart_outlined,
-                    size: 80,
-                    color: Colors.grey,
+      child: SafeArea(
+        child: Scaffold(
+          appBar: PreferredSize(
+            preferredSize: Size.fromHeight(kToolbarHeight),
+
+            child: BlocBuilder<CartBloc, CartState>(
+              builder: (context, state) {
+                return CustomAppBar(
+                  leading: IconButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    icon: Icon(
+                      Icons.arrow_back,
+                      color: AppColors.customThemeColor,
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Your cart is empty',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[700],
+                  text: 'Cart',
+                  actions: [
+                    if (state.cartItems.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(
+                          Icons.delete,
+                          color: AppColors.customThemeColor,
+                        ),
+                        onPressed:
+                            () => context.read<CartBloc>().add(ClearCart()),
+                      ),
+                    if (state.heldItems.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(
+                          Icons.pause_circle,
+                          color: AppColors.customThemeColor,
+                        ),
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder:
+                                (context) => _buildHeldCartBottomSheet(context),
+                          );
+                        },
+                      ),
+                  ],
+                );
+              },
+            ),
+          ),
+
+          body: BlocBuilder<CartBloc, CartState>(
+            builder: (context, state) {
+              if (state.cartItems.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.shopping_cart_outlined,
+                        size: 80,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Your cart is empty',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return Column(
+                children: [
+                  // --- Cart Items List ---
+                  Expanded(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: state.cartItems.length,
+                      itemBuilder: (context, index) {
+                        final item = state.cartItems[index];
+                        return CustomCartListview(
+                          image: item.imageUrl,
+                          productName: item.productName,
+                          addonProduct:
+                              item.addOns.isNotEmpty
+                                  ? _buildAddOnsList(item.addOns)
+                                  : '',
+                          addonPrice: item.addOnsTotalPrice.toString(),
+                          variationPrice:
+                              item.variation != null
+                                  ? item.variationPrice.toString()
+                                  : '',
+                          productVariation: item.variation?.variationName ?? '',
+                          productPrice: item.productPrice.toString(),
+                          quantity: item.quantity,
+                          onIncrease: () {
+                            context.read<CartBloc>().add(
+                              UpdateItemQuantity(item, item.quantity + 1),
+                            );
+                          },
+                          onDecrease: () {
+                            if (item.quantity > 1) {
+                              context.read<CartBloc>().add(
+                                UpdateItemQuantity(item, item.quantity - 1),
+                              );
+                            } else {
+                              context.read<CartBloc>().add(
+                                RemoveItemFromCart(item),
+                              );
+                            }
+                          },
+                          onDelete: () {
+                            context.read<CartBloc>().add(
+                              RemoveItemFromCart(item),
+                            );
+                          },
+                        );
+                      },
                     ),
                   ),
                 ],
-              ),
-            );
-          }
-          return Column(
-            children: [
-              // --- Cart Items List ---
-              Expanded(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: state.cartItems.length,
-                  itemBuilder: (context, index) {
-                    final item = state.cartItems[index];
-                    return CustomCartListview(
-                      image: item.imageUrl,
-                      productName: item.productName,
-                      addonProduct:
-                          item.addOns.isNotEmpty
-                              ? _buildAddOnsList(item.addOns)
-                              : '',
-                      addonPrice: item.addOnsTotalPrice.toString(),
-                      variationPrice:
-                          item.variation != null
-                              ? item.variationPrice.toString()
-                              : '',
-                      productVariation: item.variation?.variationName ?? '',
-                      productPrice: item.productPrice.toString(),
-                      quantity: item.quantity,
-                      onIncrease: () {
-                        context.read<CartBloc>().add(
-                          UpdateItemQuantity(item, item.quantity + 1),
-                        );
-                      },
-                      onDecrease: () {
-                        if (item.quantity > 1) {
-                          context.read<CartBloc>().add(
-                            UpdateItemQuantity(item, item.quantity - 1),
-                          );
-                        } else {
-                          context.read<CartBloc>().add(
-                            RemoveItemFromCart(item),
-                          );
-                        }
-                      },
-                      onDelete: () {
-                        context.read<CartBloc>().add(RemoveItemFromCart(item));
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-      bottomNavigationBar: BlocBuilder<CartBloc, CartState>(
-        builder: (context, state) {
-          if (state.cartItems.isEmpty || state.heldItems.isNotEmpty) {
-            return const SizedBox();
-          }
+              );
+            },
+          ),
+          bottomNavigationBar: BlocBuilder<CartBloc, CartState>(
+            builder: (context, state) {
+              if (state.cartItems.isEmpty || state.heldItems.isNotEmpty) {
+                return const SizedBox();
+              }
 
-          return Container(
-            height: 170,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(24),
-                topRight: Radius.circular(24),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 3,
-                  offset: Offset(0, 0),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Left Side: Summary
-                Expanded(
-                  // flex: 2,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildSummaryRow('Subtotal', state.subTotal),
-                      _buildSummaryRow('Sales Tax', state.totalSaleTax),
-                      _buildSummaryRow('Items', state.totalItems.toDouble()),
-                      const Divider(thickness: 1.2),
-                      _buildSummaryRow(
-                        'Grand Total',
-                        state.grandTotal,
-                        isBold: true,
-                      ),
-                    ],
+              return Container(
+                height: 170,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(24),
+                    topRight: Radius.circular(24),
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 3,
+                      offset: Offset(0, 0),
+                    ),
+                  ],
                 ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 20,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Left Side: Summary
+                    Expanded(
+                      // flex: 2,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSummaryRow('Subtotal', state.subTotal),
+                          _buildSummaryRow('Sales Tax', state.totalSaleTax),
+                          _buildSummaryRow(
+                            'Items',
+                            state.totalItems.toDouble(),
+                          ),
+                          const Divider(thickness: 1.2),
+                          _buildSummaryRow(
+                            'Grand Total',
+                            state.grandTotal,
+                            isBold: true,
+                          ),
+                        ],
+                      ),
+                    ),
 
-                const SizedBox(width: 12),
+                    const SizedBox(width: 12),
 
-                // Right Side: Buttons
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(
-                                  top: Radius.circular(16),
+                    // Right Side: Buttons
+                    Expanded(
+                      flex: 1,
+                      child: Column(
+                        children: [
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.vertical(
+                                      top: Radius.circular(16),
+                                    ),
+                                  ),
+                                  builder:
+                                      (_) =>
+                                          _showOrderDetailsBottomSheet(context),
+                                );
+                                // print('tap*******************************');
+                                // context.read<CartBloc>().add(SubmitCartOrder());
+                              },
+                              icon: const Icon(Icons.check_circle_outline),
+                              label: const Text("Save & Kitchen"),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.customThemeColor,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
                                 ),
                               ),
-                              builder:
-                                  (_) => _showOrderDetailsBottomSheet(context),
-                            );
-                            // print('tap*******************************');
-                            // context.read<CartBloc>().add(SubmitCartOrder());
-                          },
-                          icon: const Icon(Icons.check_circle_outline),
-                          label: const Text("Save & Kitchen"),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.customThemeColor,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
                             ),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          onPressed: () {
-                            context.read<CartBloc>().add(HoldCart());
-                          },
-                          icon: const Icon(Icons.pause_circle_outline),
-                          label: const Text("Hold Cart"),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.deepOrange,
-                            side: const BorderSide(color: Colors.deepOrange),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                context.read<CartBloc>().add(HoldCart());
+                              },
+                              icon: const Icon(Icons.pause_circle_outline),
+                              label: const Text("Hold Cart"),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.deepOrange,
+                                side: const BorderSide(
+                                  color: Colors.deepOrange,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                              ),
                             ),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          );
-        },
+              );
+            },
+          ),
+        ),
       ),
     );
   }

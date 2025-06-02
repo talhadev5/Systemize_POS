@@ -1,6 +1,5 @@
 import 'package:systemize_pos/data/models/hive_model/products_model.dart';
 
-
 class Items {
   final String id;
   final String productId;
@@ -46,7 +45,12 @@ class Items {
     0.0,
     (sum, addOn) => sum + double.parse(addOn.addOnPrice!) * quantity,
   );
-  double get subtotal => (variationPrice) * quantity + addOnsTotalPrice;
+  // double get subtotal => (variationPrice) * quantity + addOnsTotalPrice;
+  double get effectiveProductPrice =>
+      variation != null
+          ? double.parse(variation!.variationPrice.toString())
+          : productPrice;
+  double get subtotal => effectiveProductPrice * quantity + addOnsTotalPrice;
   double get total => subtotal + saleTax;
 
   factory Items.fromJson(Map<String, dynamic> json) {

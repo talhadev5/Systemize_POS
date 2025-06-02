@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:systemize_pos/bloc/cart_bloc/cart_bloc.dart';
 import 'package:systemize_pos/bloc/cart_bloc/cart_state.dart';
 import 'package:systemize_pos/bloc/navbar_bloc/navbar_bloc.dart';
 import 'package:systemize_pos/bloc/navbar_bloc/navbar_event.dart';
 import 'package:systemize_pos/bloc/navbar_bloc/navbar_state.dart';
 import 'package:systemize_pos/bloc/soket_connection/soket_con_bolc.dart';
+import 'package:systemize_pos/bloc/soket_connection/soket_con_event.dart';
 import 'package:systemize_pos/bloc/soket_connection/soket_con_state.dart';
 import 'package:systemize_pos/configs/color/color.dart';
 import 'package:systemize_pos/configs/components/app_bar.dart';
@@ -29,6 +32,52 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
   ];
 
   final List<String> _labels = ["Products", "Profile"];
+  Widget _buildAppBarLeading(int index) {
+    switch (index) {
+      case 0: // Products
+        return BlocBuilder<WebSocketConnBloc, WebSocketConnState>(
+          builder: (context, state) {
+            IconData iconData = Icons.sync;
+            Color iconColor = Colors.red;
+
+            if (state is WebSocketConnected) {
+              iconData = Icons.sync;
+              iconColor = Colors.green;
+            }
+
+            return IconButton(
+              icon: Icon(iconData, color: iconColor),
+              onPressed: () async {
+                final prefs = await SharedPreferences.getInstance();
+                final wsUrl =
+                    prefs.getString('websocket_url') ??
+                    'ws://192.168.192.2:8765';
+                // Optional: Navigate to WebSocket Status page
+                context.read<WebSocketConnBloc>().add(ConnectWebSocket(wsUrl));
+                Navigator.pushNamed(context, RoutesName.webSocketStatus);
+              },
+            );
+          },
+        );
+
+      // case 1: // Cart
+      //   return [
+
+      //   ];
+      // case 2: // Profile
+      //   return [
+      //     IconButton(
+      //       icon: Icon(Icons.wifi),
+      //       onPressed: () {
+      //         Navigator.pushNamed(context, RoutesName.webSocketSetting);
+      //       },
+      //     ),
+      //   ];
+      default:
+        return SizedBox();
+    }
+  }
+
   List<Widget>? _buildAppBarActions(int index) {
     switch (index) {
       case 0: // Products
@@ -118,104 +167,119 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: BlocBuilder<BottomNavBloc, BottomNavState>(
-          builder: (context, state) {
-            return CustomAppBar(
-              text: state.title,
-              actions: _buildAppBarActions(state.selectedIndex),
-            );
-          },
-        ),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor:
+            AppColors.customThemeColor, // Set your desired color here
+        statusBarIconBrightness: Brightness.light, // For white icons
+        statusBarBrightness: Brightness.dark, // iOS only
       ),
-      extendBody: true,
-      backgroundColor: Colors.grey.shade100,
-      body: BlocBuilder<BottomNavBloc, BottomNavState>(
-        buildWhen:
-            (previous, current) =>
-                previous.selectedIndex != current.selectedIndex,
-        builder: (context, state) {
-          int currentIndex = state.selectedIndex;
-          return _pages[currentIndex];
-        },
-      ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Container(
-          height: 60,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(40),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 10,
-                offset: Offset(0, 5),
-              ),
-            ],
+
+      child: SafeArea(
+        child: Scaffold(
+          appBar: PreferredSize(
+            preferredSize: const Size.fromHeight(kToolbarHeight),
+            child: BlocBuilder<BottomNavBloc, BottomNavState>(
+              builder: (context, state) {
+                return CustomAppBar(
+                  leading: _buildAppBarLeading(state.selectedIndex),
+                  text: state.title,
+                  actions: _buildAppBarActions(state.selectedIndex),
+                );
+              },
+            ),
           ),
-          child: BlocBuilder<BottomNavBloc, BottomNavState>(
+          extendBody: true,
+          backgroundColor: Colors.grey.shade100,
+          body: BlocBuilder<BottomNavBloc, BottomNavState>(
+            buildWhen:
+                (previous, current) =>
+                    previous.selectedIndex != current.selectedIndex,
             builder: (context, state) {
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: List.generate(_icons.length, (index) {
-                  bool isSelected = state.selectedIndex == index;
-                  return GestureDetector(
-                    onTap: () {
-                      context.read<BottomNavBloc>().add(
-                        BottomNavTabChanged(index),
-                      );
-                    },
-                    child: AnimatedContainer(
-                      duration: Duration(milliseconds: 300),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration:
-                          isSelected
-                              ? BoxDecoration(
-                                color: AppColors.customThemeLightColor,
-                                borderRadius: BorderRadius.circular(30),
-                              )
-                              : BoxDecoration(),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color:
-                                  isSelected
-                                      ? AppColors.customThemeColor
-                                      : Colors.grey.shade300,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              _icons[index],
-                              size: 18,
-                              color: isSelected ? Colors.white : Colors.black54,
-                            ),
+              int currentIndex = state.selectedIndex;
+              return _pages[currentIndex];
+            },
+          ),
+          bottomNavigationBar: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Container(
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(40),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    blurRadius: 10,
+                    offset: Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: BlocBuilder<BottomNavBloc, BottomNavState>(
+                builder: (context, state) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: List.generate(_icons.length, (index) {
+                      bool isSelected = state.selectedIndex == index;
+                      return GestureDetector(
+                        onTap: () {
+                          context.read<BottomNavBloc>().add(
+                            BottomNavTabChanged(index),
+                          );
+                        },
+                        child: AnimatedContainer(
+                          duration: Duration(milliseconds: 300),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
                           ),
-                          if (isSelected)
-                            Padding(
-                              padding: const EdgeInsets.only(left: 8),
-                              child: Text(
-                                _labels[index],
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
+                          decoration:
+                              isSelected
+                                  ? BoxDecoration(
+                                    color: AppColors.customThemeLightColor,
+                                    borderRadius: BorderRadius.circular(30),
+                                  )
+                                  : BoxDecoration(),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color:
+                                      isSelected
+                                          ? AppColors.customThemeColor
+                                          : Colors.grey.shade300,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  _icons[index],
+                                  size: 18,
+                                  color:
+                                      isSelected
+                                          ? Colors.white
+                                          : Colors.black54,
                                 ),
                               ),
-                            ),
-                        ],
-                      ),
-                    ),
+                              if (isSelected)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 8),
+                                  child: Text(
+                                    _labels[index],
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
                   );
-                }),
-              );
-            },
+                },
+              ),
+            ),
           ),
         ),
       ),
