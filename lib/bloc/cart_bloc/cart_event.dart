@@ -57,3 +57,7 @@ class LoadOrderId extends CartEvent {
   LoadOrderId(this.orderId);
 
 }
+class UpdateOrderType extends CartEvent {
+  final String orderType;
+  UpdateOrderType(this.orderType);
+}

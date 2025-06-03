@@ -1,7 +1,9 @@
 // pages/order_list_page.dart
 // ignore_for_file: library_prefixes
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:systemize_pos/bloc/cart_bloc/cart_bloc.dart';
 import 'package:systemize_pos/bloc/cart_bloc/cart_event.dart';
@@ -17,6 +19,7 @@ import 'package:systemize_pos/data/models/order_list_model/order_list_model.dart
     as OrderModel;
 import 'package:systemize_pos/data/models/hive_model/products_model.dart'
     as ProductsModel;
+import 'package:systemize_pos/utils/extensions/media_query_extensions.dart';
 import 'package:systemize_pos/utils/extensions/string_extension.dart';
 import 'dart:developer' as developer;
 
@@ -106,269 +109,312 @@ class _OrderListScreenState extends State<OrderListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.customScaffoldColor,
-      appBar: CustomAppBar(
-        text: 'Order List',
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back, color: AppColors.customThemeColor),
-        ),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor:
+            AppColors.customThemeColor, // Set your desired color here
+        statusBarIconBrightness: Brightness.light, // For white icons
+        statusBarBrightness: Brightness.dark, // iOS only
       ),
-      body: BlocBuilder<OrderListBloc, OrderListState>(
-        builder: (context, state) {
-          if (state is OrderListLoading) {
-            return const DefultLoader();
-          } else if (state is OrderListLoaded) {
-            final orders = state.orders;
-            if (orders.isEmpty) {
-              return const Center(child: Text('No orders found.'));
-            }
-            return ListView.builder(
-              controller: _scrollController,
-              itemCount: orders.length,
-              itemBuilder: (context, index) {
-                final data = orders[index];
+      child: SafeArea(
+        child: Scaffold(
+          backgroundColor: AppColors.customScaffoldColor,
+          appBar: CustomAppBar(
+            text: 'Order List',
+            leading: IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(
+                Icons.arrow_back,
+                color: AppColors.customThemeColor,
+              ),
+            ),
+          ),
 
-                return Card(
-                  color: AppColors.customWhiteColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
+          body: SingleChildScrollView(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: 10,
+                    right: 10,
+                    top: 8,
+                    bottom: 0,
                   ),
-                  elevation: 1,
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
+                  child: SizedBox(
+                    height: 50, // <-- Set your desired height here
+
+                    child: CupertinoSearchTextField(
+                      onChanged: (query) {
+                        context.read<OrderListBloc>().add(
+                          UpdateSearchQuery(query),
+                        );
+                      },
+                      style: TextStyle(fontSize: 16),
+                      placeholder: 'Search by customer name...',
+                      placeholderStyle: TextStyle(color: Colors.grey),
+                      itemColor: Colors.grey.shade600,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 10,
+                        horizontal: 10,
+                      ),
+                      backgroundColor: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                  child: ExpansionTile(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    title: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          data.info?.customerName?.capitalizeEachWord() ??
-                              'N/A',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "Total: Rs ${data.grandTotal.toString()}",
-                          style: const TextStyle(
-                            color: Colors.black45,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    subtitle: Text("Date: ${data.orderDateTime ?? 'N/A'}"),
-                    children: [
-                      const Divider(),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Items:',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
+                ),
+                BlocBuilder<OrderListBloc, OrderListState>(
+                  builder: (context, state) {
+                    if (state is OrderListLoading) {
+                      return SizedBox(
+                        height: context.screenHeight * 0.8,
+                        child: const DefultLoader(),
+                      );
+                    } else if (state is OrderListLoaded) {
+                      final orders = state.orders;
+                      if (orders.isEmpty) {
+                        return SizedBox(
+                          height: context.screenHeight * 0.8,
+                          child: const Center(child: Text('No orders found.')),
+                        );
+                      }
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        controller: _scrollController,
+                        itemCount: orders.length,
+                        itemBuilder: (context, index) {
+                          final data = orders[index];
+
+                          return Card(
+                            color: AppColors.customWhiteColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
                             ),
-                            const SizedBox(height: 8),
-                            ...data.cartItems.map((item) {
-                              // final variation =
-                              //     (item.variations != null &&
-                              //             item.variations!.isNotEmpty)
-                              //         ? item.variations!.first
-                              //         : null;
-                              final variations = item.variations ?? [];
-                              final addons = item.addOn ?? [];
-
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 12.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '• ${item.title.toString().capitalizeEachWord()}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 15,
-                                      ),
+                            elevation: 1,
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            child: ExpansionTile(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              title: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    data.info?.customerName
+                                            ?.capitalizeEachWord() ??
+                                        'N/A',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
                                     ),
-                                    if (variations.isNotEmpty)
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          left: 12,
-                                          top: 2,
-                                        ),
-                                        child: Column(
-                                          children:
-                                              variations.map((variation) {
-                                                return Text(
-                                                  'Variation: ${variation.variationName ?? 'Unknown'} - Rs ${variation.variationPrice ?? '0.0'}',
-                                                  style: const TextStyle(
-                                                    color: Colors.black87,
-                                                  ),
-                                                );
-                                              }).toList(),
-                                        ),
-                                      ),
-                                    if (addons.isNotEmpty)
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          left: 12,
-                                          top: 2,
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children:
-                                              addons.map((addon) {
-                                                return Text(
-                                                  'Add-on: ${addon.addOnName} - Rs ${addon.addOnPrice}',
-                                                  style: const TextStyle(
-                                                    color: Colors.black87,
-                                                  ),
-                                                );
-                                              }).toList(),
-                                        ),
-                                      ),
-                                    Padding(
-                                      padding: const EdgeInsets.only(
-                                        left: 12,
-                                        top: 4,
-                                      ),
-                                      child: Text(
-                                        'Qty: ${item.qty}',
-                                        style: const TextStyle(
-                                          color: Colors.black54,
-                                        ),
-                                      ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "Total: Rs ${data.grandTotal.toString()}",
+                                    style: const TextStyle(
+                                      color: Colors.black45,
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                    const Divider(height: 20),
-                                  ],
-                                ),
-                              );
-                            }).toList(),
+                                  ),
+                                ],
+                              ),
 
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: ElevatedButton.icon(
-                                onPressed: () {
-                                  final List<Items> orderItems =
-                                      data.cartItems
-                                          .map(
-                                            (cartItem) =>
-                                                convertCartItemToItems(
-                                                  cartItem,
+                              subtitle: Text(
+                                "Date: ${data.orderDateTime ?? 'N/A'}",
+                              ),
+                              children: [
+                                const Divider(),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const Text(
+                                            'Items:',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                          Text(
+                                            ' ${data.type.capitalize()}',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      ...data.cartItems.map((item) {
+                                        // final variation =
+                                        //     (item.variations != null &&
+                                        //             item.variations!.isNotEmpty)
+                                        //         ? item.variations!.first
+                                        //         : null;
+                                        final variations =
+                                            item.variations ?? [];
+                                        final addons = item.addOn ?? [];
+
+                                        return Padding(
+                                          padding: const EdgeInsets.only(
+                                            bottom: 12.0,
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '• ${item.title.toString().capitalizeEachWord()}',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 15,
                                                 ),
-                                          )
-                                          .toList();
+                                              ),
+                                              if (variations.isNotEmpty)
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                        left: 12,
+                                                        top: 2,
+                                                      ),
+                                                  child: Column(
+                                                    children:
+                                                        variations.map((
+                                                          variation,
+                                                        ) {
+                                                          return Text(
+                                                            'Variation: ${variation.variationName ?? 'Unknown'} - Rs ${variation.variationPrice ?? '0.0'}',
+                                                            style: const TextStyle(
+                                                              color:
+                                                                  Colors
+                                                                      .black87,
+                                                            ),
+                                                          );
+                                                        }).toList(),
+                                                  ),
+                                                ),
+                                              if (addons.isNotEmpty)
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                        left: 12,
+                                                        top: 2,
+                                                      ),
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children:
+                                                        addons.map((addon) {
+                                                          return Text(
+                                                            'Add-on: ${addon.addOnName} - Rs ${addon.addOnPrice}',
+                                                            style: const TextStyle(
+                                                              color:
+                                                                  Colors
+                                                                      .black87,
+                                                            ),
+                                                          );
+                                                        }).toList(),
+                                                  ),
+                                                ),
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  left: 12,
+                                                  top: 4,
+                                                ),
+                                                child: Text(
+                                                  'Qty: ${item.qty}',
+                                                  style: const TextStyle(
+                                                    color: Colors.black54,
+                                                  ),
+                                                ),
+                                              ),
+                                              const Divider(height: 20),
+                                            ],
+                                          ),
+                                        );
+                                      }).toList(),
 
-                                  // final rawOrderId = data.id;
-                                  // if (rawOrderId == null) {
-                                  //   developer.log(
-                                  //     ' orderId is null. Cannot proceed.',
-                                  //   );
-                                  //   return;
-                                  // }
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: ElevatedButton.icon(
+                                          onPressed: () {
+                                            final List<Items> orderItems =
+                                                data.cartItems
+                                                    .map(
+                                                      (cartItem) =>
+                                                          convertCartItemToItems(
+                                                            cartItem,
+                                                          ),
+                                                    )
+                                                    .toList();
 
-                                  final orderId = data.id;
-                                  // if (orderId == null) {
-                                  //   developer.log(
-                                  //     ' Failed to parse orderId: $rawOrderId',
-                                  //   );
-                                  //   return;
-                                  // }
+                                            final orderId = data.id;
 
-                                  developer.log(' Parsed orderId: $orderId');
-                                  context.read<CartBloc>().add(
-                                    LoadOrderId(orderId),
-                                  );
+                                            developer.log(
+                                              ' Parsed orderId: $orderId',
+                                            );
+                                            context.read<CartBloc>().add(
+                                              LoadOrderId(orderId),
+                                            );
 
-                                  // context.read<CartBloc>().add(ClearCart());
-                                  context.read<CartBloc>().add(
-                                    AddItemToCart(orderItems),
-                                  );
+                                            // context.read<CartBloc>().add(ClearCart());
+                                            context.read<CartBloc>().add(
+                                              AddItemToCart(orderItems),
+                                            );
 
-                                  Navigator.popAndPushNamed(
-                                    context,
-                                    RoutesName.cartScreen,
-                                  );
-                                },
+                                            Navigator.popAndPushNamed(
+                                              context,
+                                              RoutesName.cartScreen,
+                                            );
+                                          },
 
-                                // onPressed: () {
-                                //   final List<Items> orderItems =
-                                //       data.cartItems
-                                //           .map(
-                                //             (cartItem) =>
-                                //                 convertCartItemToItems(
-                                //                   cartItem,
-                                //                 ),
-                                //           )
-                                //           .toList();
-                                //   final orderId = int.tryParse(
-                                //     data.orderId?.toString() ?? '',
-                                //   );
-
-                                //   if (orderId != null) {
-                                //     developer.log('Id Have:: ${data.orderId}');
-                                //     context.read<CartBloc>().add(
-                                //       LoadOrderId(orderId),
-                                //     );
-                                //   } else {
-                                //     developer.log(
-                                //       'Error: Failed to parse orderId: ${data.orderId}',
-                                //     );
-                                //   }
-
-                                //   // Clear cart first to avoid overlapping items or variations
-                                //   context.read<CartBloc>().add(ClearCart());
-
-                                //   // for (final item in orderItems) {
-                                //   context.read<CartBloc>().add(
-                                //     AddItemToCart(orderItems),
-                                //   );
-
-                                //   Navigator.popAndPushNamed(
-                                //     context,
-                                //     RoutesName.cartScreen,
-                                //     arguments: data.orderId,
-                                //   );
-                                // },
-                                icon: const Icon(Icons.edit, size: 18),
-                                label: const Text('Edit Order'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.customThemeColor,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                          icon: const Icon(
+                                            Icons.edit,
+                                            size: 18,
+                                          ),
+                                          label: const Text('Edit Order'),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                AppColors.customThemeColor,
+                                            foregroundColor: Colors.white,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                    ],
                                   ),
                                 ),
-                              ),
+                              ],
                             ),
-                            const SizedBox(height: 8),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            );
-          } else if (state is OrderListError) {
-            return Center(child: Text('Error: ${state.message}'));
-          } else {
-            return const Center(child: Text('Unknown state'));
-          }
-        },
+                          );
+                        },
+                      );
+                    } else if (state is OrderListError) {
+                      return Center(child: Text('Error: ${state.message}'));
+                    } else {
+                      return const Center(child: Text('Unknown state'));
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

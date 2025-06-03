@@ -80,6 +80,7 @@ class _CartScreenState extends State<CartScreen> {
                         ),
                         onPressed: () {
                           showModalBottomSheet(
+                            useSafeArea: true,
                             context: context,
                             isScrollControlled: true,
                             backgroundColor: Colors.transparent,
@@ -207,16 +208,23 @@ class _CartScreenState extends State<CartScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildSummaryRow('Subtotal', state.subTotal),
-                          _buildSummaryRow('Sales Tax', state.totalSaleTax),
+                          _buildSummaryRow(
+                            'Subtotal',
+                            state.subTotal.toString(),
+                          ),
+                          _buildSummaryRow(
+                            'Sales Tax',
+                            state.totalSaleTax.toString(),
+                          ),
                           _buildSummaryRow(
                             'Items',
-                            state.totalItems.toDouble(),
+                            state.totalItems.toString(),
+                            rs: false,
                           ),
                           const Divider(thickness: 1.2),
                           _buildSummaryRow(
                             'Grand Total',
-                            state.grandTotal,
+                            state.grandTotal.toString(),
                             isBold: true,
                           ),
                         ],
@@ -233,22 +241,25 @@ class _CartScreenState extends State<CartScreen> {
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton.icon(
-                              onPressed: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  shape: const RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.vertical(
-                                      top: Radius.circular(16),
-                                    ),
-                                  ),
-                                  builder:
-                                      (_) =>
-                                          _showOrderDetailsBottomSheet(context),
-                                );
-                                // print('tap*******************************');
-                                // context.read<CartBloc>().add(SubmitCartOrder());
-                              },
+                              onPressed:
+                                  () => showOrderDetailsBottomSheet(context),
+                              // onPressed: () {
+                              // showModalBottomSheet(
+                              //   context: context,
+                              //   useSafeArea: true,
+                              //   isScrollControlled: true,
+                              //   shape: const RoundedRectangleBorder(
+                              //     borderRadius: BorderRadius.vertical(
+                              //       top: Radius.circular(16),
+                              //     ),
+                              //   ),
+                              //   builder:
+                              //       (_) =>
+                              //           _showOrderDetailsBottomSheet(context),
+                              // );
+                              // print('tap*******************************');
+                              // context.read<CartBloc>().add(SubmitCartOrder());
+                              // },
                               icon: const Icon(Icons.check_circle_outline),
                               label: const Text("Save & Kitchen"),
                               style: ElevatedButton.styleFrom(
@@ -299,7 +310,12 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildSummaryRow(String title, double value, {bool isBold = false}) {
+  Widget _buildSummaryRow(
+    String title,
+    String value, {
+    bool isBold = false,
+    bool rs = true,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
@@ -317,7 +333,7 @@ class _CartScreenState extends State<CartScreen> {
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: 'Rs ',
+                  text: rs ? 'Rs ' : '',
                   style: TextStyle(
                     fontSize: 10, // smaller size for "Rs"
                     color: Colors.black87,
@@ -325,7 +341,7 @@ class _CartScreenState extends State<CartScreen> {
                   ),
                 ),
                 TextSpan(
-                  text: value.toStringAsFixed(2),
+                  text: value,
                   style: TextStyle(
                     fontSize: 14, // normal size for amount
                     color: Colors.black87,
@@ -452,207 +468,390 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   // order details.............
-  Widget _showOrderDetailsBottomSheet(BuildContext context) {
-    String selectedOrderType = 'dineIn';
+  void showOrderDetailsBottomSheet(BuildContext context) {
     final customerNameController = TextEditingController();
     final tableController = TextEditingController();
     final orderNoteController = TextEditingController();
 
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea:
+          true, // Ensures content is visible around keyboard and notches
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      child: StatefulBuilder(
-        builder: (context, setModalState) {
-          return GestureDetector(
+      builder: (_) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: GestureDetector(
             onTap: () => FocusScope.of(context).unfocus(),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(25),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 10,
-                    offset: Offset(0, -3),
+            child: SafeArea(
+              // Ensures it avoids the unsafe areas
+              top: false,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(25),
                   ),
-                ],
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade400,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      "Order Details",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    /// Customer Name
-                    Row(
-                      children: [
-                        Expanded(
-                          child: CustomTextField(
-                            key: const ValueKey("customerName"),
-                            labelText: "Customer Name",
-                            hintText: "e.g. John Doe (optional)",
-                            prefixIcon: Icons.person,
-                            controller: customerNameController,
-                            // validator: (value) {
-                            //   if (value == null || value.isEmpty) {
-                            //     return "Customer name is required";
-                            //   }
-                            //   return null;
-                            // },
-                            onChanged: (value) {},
-                            onEditingComplete: () {},
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 24,
+                ),
+                child: SingleChildScrollView(
+                  child: BlocBuilder<CartBloc, CartState>(
+                    builder: (context, state) {
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Center(
+                            child: Container(
+                              width: 40,
+                              height: 4,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade400,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
                           ),
-                        ),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: CustomTextField(
-                            key: const ValueKey("table"),
-                            labelText: "Table",
-                            hintText: "e.g. 34  (optional)",
-                            prefixIcon: Icons.table_bar,
-                            controller: tableController,
-                            // validator: (value) {
-                            //   if (value == null || value.isEmpty) {
-                            //     return "Customer name is required";
-                            //   }
-                            //   return null;
-                            // },s
-                            onChanged: (value) {},
-                            onEditingComplete: () {},
+                          const SizedBox(height: 16),
+                          const Text(
+                            "Order Details",
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    /// Order Note
-                    CustomTextField(
-                      key: const ValueKey("orderNote"),
-                      labelText: "Order Note",
-                      hintText: "e.g. kitchen, allergy info (optional)",
-                      prefixIcon: Icons.note,
-                      controller: orderNoteController,
-                      keyboardType: TextInputType.text,
-
-                      onChanged: (value) {},
-                      onEditingComplete: () {},
-                    ),
-                    const SizedBox(height: 20),
-
-                    /// Order Type Selection
-                    const Text(
-                      "Order Type",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment
-                              .spaceBetween, // or spaceEvenly/spaceAround as you want
-                      children:
-                          ['dineIn', 'takeAway'].map((type) {
-                            return Expanded(
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(12),
-                                onTap: () {
-                                  setModalState(() {
-                                    selectedOrderType = type;
-                                  });
-                                },
-                                child: Container(
-                                  margin: EdgeInsets.only(right: 8),
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color:
-                                          selectedOrderType == type
-                                              ? AppColors.customThemeColor
-                                              : Colors.grey.shade300,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Radio<String>(
-                                        value: type,
-                                        groupValue: selectedOrderType,
-                                        activeColor: AppColors.customThemeColor,
-                                        onChanged: (value) {
-                                          setModalState(() {
-                                            selectedOrderType = value!;
-                                          });
-                                        },
-                                      ),
-                                      SizedBox(width: 4),
-                                      Text(
-                                        type.toString().capitalizeEachWord(),
-                                      ),
-                                    ],
-                                  ),
+                          const SizedBox(height: 20),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: CustomTextField(
+                                  labelText: "Customer Name",
+                                  hintText: "e.g. John Doe (optional)",
+                                  prefixIcon: Icons.person,
+                                  controller: customerNameController,
                                 ),
                               ),
-                            );
-                          }).toList(),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    /// Save Button
-                    CustomButton(
-                      title: 'Save & Kitchen',
-                      borderRadius: 20,
-                      height: 50,
-                      onTap: () {
-                        context.read<CartBloc>().add(
-                          SubmitCartOrder(
-                            customerName: customerNameController.text.trim(),
-                            orderNote: orderNoteController.text.trim(),
-                            orderType: selectedOrderType,
-                            tableNo: tableController.text.trim(),
+                              SizedBox(width: 10),
+                              Expanded(
+                                child: CustomTextField(
+                                  labelText: "Table",
+                                  hintText: "e.g. 34 (optional)",
+                                  prefixIcon: Icons.table_bar,
+                                  controller: tableController,
+                                ),
+                              ),
+                            ],
                           ),
-                        );
-
-                        Navigator.pop(context);
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                  ],
+                          const SizedBox(height: 16),
+                          CustomTextField(
+                            labelText: "Order Note",
+                            hintText: "e.g. kitchen, allergy info (optional)",
+                            prefixIcon: Icons.note,
+                            controller: orderNoteController,
+                          ),
+                          const SizedBox(height: 20),
+                          const Text(
+                            "Order Type",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children:
+                                ['dineIn', 'takeAway'].map((type) {
+                                  final isSelected =
+                                      state.selectedOrderType == type;
+                                  return Expanded(
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(12),
+                                      onTap: () {
+                                        context.read<CartBloc>().add(
+                                          UpdateOrderType(type),
+                                        );
+                                      },
+                                      child: Container(
+                                        margin: EdgeInsets.only(right: 8),
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          border: Border.all(
+                                            color:
+                                                isSelected
+                                                    ? AppColors.customThemeColor
+                                                    : Colors.grey.shade300,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Radio<String>(
+                                              value: type,
+                                              groupValue:
+                                                  state.selectedOrderType,
+                                              activeColor:
+                                                  AppColors.customThemeColor,
+                                              onChanged: (value) {
+                                                context.read<CartBloc>().add(
+                                                  UpdateOrderType(value!),
+                                                );
+                                              },
+                                            ),
+                                            SizedBox(width: 4),
+                                            Text(type.capitalizeEachWord()),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                          ),
+                          const SizedBox(height: 24),
+                          CustomButton(
+                            title: 'Save & Kitchen',
+                            borderRadius: 20,
+                            height: 50,
+                            onTap: () {
+                              context.read<CartBloc>().add(
+                                SubmitCartOrder(
+                                  customerName:
+                                      customerNameController.text.trim(),
+                                  orderNote: orderNoteController.text.trim(),
+                                  orderType: state.selectedOrderType,
+                                  tableNo: tableController.text.trim(),
+                                ),
+                              );
+                              Navigator.pop(context);
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
+
+  // Widget _showOrderDetailsBottomSheet(BuildContext context) {
+  //   String selectedOrderType = 'dineIn';
+  //   final customerNameController = TextEditingController();
+  //   final tableController = TextEditingController();
+  //   final orderNoteController = TextEditingController();
+
+  //   return Padding(
+  //     padding: EdgeInsets.only(
+  //       bottom: MediaQuery.of(context).viewInsets.bottom,
+  //     ),
+  //     child: StatefulBuilder(
+  //       builder: (context, setModalState) {
+  //         return GestureDetector(
+  //           onTap: () => FocusScope.of(context).unfocus(),
+  //           child: Container(
+  //             decoration: BoxDecoration(
+  //               color: Colors.white,
+  //               borderRadius: const BorderRadius.vertical(
+  //                 top: Radius.circular(25),
+  //               ),
+  //               boxShadow: [
+  //                 BoxShadow(
+  //                   color: Colors.black12,
+  //                   blurRadius: 10,
+  //                   offset: Offset(0, -3),
+  //                 ),
+  //               ],
+  //             ),
+  //             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+  //             child: SingleChildScrollView(
+  //               child: Column(
+  //                 mainAxisSize: MainAxisSize.min,
+  //                 crossAxisAlignment: CrossAxisAlignment.start,
+  //                 children: [
+  //                   Center(
+  //                     child: Container(
+  //                       width: 40,
+  //                       height: 4,
+  //                       decoration: BoxDecoration(
+  //                         color: Colors.grey.shade400,
+  //                         borderRadius: BorderRadius.circular(2),
+  //                       ),
+  //                     ),
+  //                   ),
+  //                   const SizedBox(height: 16),
+  //                   const Text(
+  //                     "Order Details",
+  //                     style: TextStyle(
+  //                       fontSize: 20,
+  //                       fontWeight: FontWeight.w600,
+  //                     ),
+  //                   ),
+  //                   const SizedBox(height: 20),
+
+  //                   /// Customer Name
+  //                   Row(
+  //                     children: [
+  //                       Expanded(
+  //                         child: CustomTextField(
+  //                           key: const ValueKey("customerName"),
+  //                           labelText: "Customer Name",
+  //                           hintText: "e.g. John Doe (optional)",
+  //                           prefixIcon: Icons.person,
+  //                           controller: customerNameController,
+  //                           // validator: (value) {
+  //                           //   if (value == null || value.isEmpty) {
+  //                           //     return "Customer name is required";
+  //                           //   }
+  //                           //   return null;
+  //                           // },
+  //                           onChanged: (value) {},
+  //                           onEditingComplete: () {},
+  //                         ),
+  //                       ),
+  //                       SizedBox(width: 10),
+  //                       Expanded(
+  //                         child: CustomTextField(
+  //                           key: const ValueKey("table"),
+  //                           labelText: "Table",
+  //                           hintText: "e.g. 34  (optional)",
+  //                           prefixIcon: Icons.table_bar,
+  //                           controller: tableController,
+  //                           // validator: (value) {
+  //                           //   if (value == null || value.isEmpty) {
+  //                           //     return "Customer name is required";
+  //                           //   }
+  //                           //   return null;
+  //                           // },s
+  //                           onChanged: (value) {},
+  //                           onEditingComplete: () {},
+  //                         ),
+  //                       ),
+  //                     ],
+  //                   ),
+  //                   const SizedBox(height: 16),
+
+  //                   /// Order Note
+  //                   CustomTextField(
+  //                     key: const ValueKey("orderNote"),
+  //                     labelText: "Order Note",
+  //                     hintText: "e.g. kitchen, allergy info (optional)",
+  //                     prefixIcon: Icons.note,
+  //                     controller: orderNoteController,
+  //                     keyboardType: TextInputType.text,
+
+  //                     onChanged: (value) {},
+  //                     onEditingComplete: () {},
+  //                   ),
+  //                   const SizedBox(height: 20),
+
+  //                   /// Order Type Selection
+  //                   const Text(
+  //                     "Order Type",
+  //                     style: TextStyle(
+  //                       fontSize: 16,
+  //                       fontWeight: FontWeight.w500,
+  //                     ),
+  //                   ),
+  //                   const SizedBox(height: 8),
+  //                   Row(
+  //                     mainAxisAlignment:
+  //                         MainAxisAlignment
+  //                             .spaceBetween, // or spaceEvenly/spaceAround as you want
+  //                     children:
+  //                         ['dineIn', 'takeAway'].map((type) {
+  //                           return Expanded(
+  //                             child: InkWell(
+  //                               borderRadius: BorderRadius.circular(12),
+  //                               onTap: () {
+  //                                 setModalState(() {
+  //                                   selectedOrderType = type;
+  //                                 });
+  //                               },
+  //                               child: Container(
+  //                                 margin: EdgeInsets.only(right: 8),
+  //                                 padding: EdgeInsets.symmetric(
+  //                                   horizontal: 8,
+  //                                   vertical: 4,
+  //                                 ),
+  //                                 decoration: BoxDecoration(
+  //                                   borderRadius: BorderRadius.circular(12),
+  //                                   border: Border.all(
+  //                                     color:
+  //                                         selectedOrderType == type
+  //                                             ? AppColors.customThemeColor
+  //                                             : Colors.grey.shade300,
+  //                                   ),
+  //                                 ),
+  //                                 child: Row(
+  //                                   mainAxisSize: MainAxisSize.min,
+  //                                   children: [
+  //                                     Radio<String>(
+  //                                       value: type,
+  //                                       groupValue: selectedOrderType,
+  //                                       activeColor: AppColors.customThemeColor,
+  //                                       onChanged: (value) {
+  //                                         setModalState(() {
+  //                                           selectedOrderType = value!;
+  //                                         });
+  //                                       },
+  //                                     ),
+  //                                     SizedBox(width: 4),
+  //                                     Text(
+  //                                       type.toString().capitalizeEachWord(),
+  //                                     ),
+  //                                   ],
+  //                                 ),
+  //                               ),
+  //                             ),
+  //                           );
+  //                         }).toList(),
+  //                   ),
+
+  //                   const SizedBox(height: 24),
+
+  //                   /// Save Button
+  //                   CustomButton(
+  //                     title: 'Save & Kitchen',
+  //                     borderRadius: 20,
+  //                     height: 50,
+  //                     onTap: () {
+  //                       context.read<CartBloc>().add(
+  //                         SubmitCartOrder(
+  //                           customerName: customerNameController.text.trim(),
+  //                           orderNote: orderNoteController.text.trim(),
+  //                           orderType: selectedOrderType,
+  //                           tableNo: tableController.text.trim(),
+  //                         ),
+  //                       );
+
+  //                       Navigator.pop(context);
+  //                     },
+  //                   ),
+  //                   const SizedBox(height: 16),
+  //                 ],
+  //               ),
+  //             ),
+  //           ),
+  //         );
+  //       },
+  //     ),
+  //   );
+  // }
 }

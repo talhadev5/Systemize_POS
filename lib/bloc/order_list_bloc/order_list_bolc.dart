@@ -13,9 +13,13 @@ import 'package:bloc/bloc.dart';
 
 class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
   final OrderRepository repository;
+  List<Data> _allOrders = [];
 
   OrderListBloc({required this.repository}) : super(OrderListInitial()) {
     on<FetchOrders>(_onFetchOrders);
+       on<ToggleSearch>(_onToggleSearch);
+    on<UpdateSearchQuery>(_onUpdateSearchQuery);
+    on<HideSearchBar>(_onHideSearchBar);
   }
 
   // Separated function to handle FetchOrders event
@@ -28,10 +32,30 @@ class OrderListBloc extends Bloc<OrderListEvent, OrderListState> {
   final orderListModel = await repository.fetchOrders();
   log('Fetched orders: ${orderListModel.data}');
   final List<Data> orders = List<Data>.from(orderListModel.data??[]);
+   _allOrders = orders;
   emit(OrderListLoaded(orders));
 } catch (e) {
   log('Error fetching orders: $e');
   emit(OrderListError(e.toString()));
 }
   }
+ void _onToggleSearch(ToggleSearch event, Emitter<OrderListState> emit) {
+    emit(SearchVisible());
+  }
+
+  void _onUpdateSearchQuery(UpdateSearchQuery event, Emitter<OrderListState> emit) {
+    final filteredOrders = _allOrders
+        .where((order) =>
+            order.info?.customerName?.toLowerCase().contains(event.query.toLowerCase()) ?? false)
+        .toList();
+    emit(OrderListLoaded(filteredOrders));
+  }
+
+  void _onHideSearchBar(HideSearchBar event, Emitter<OrderListState> emit) {
+    emit(SearchHidden());
+    emit(OrderListLoaded(_allOrders));
+  }
+
+
+
 }

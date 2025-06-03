@@ -8,3 +8,11 @@ abstract class OrderListEvent extends Equatable {
 }
 
 class FetchOrders extends OrderListEvent {}
+class ToggleSearch extends OrderListEvent  {}
+
+class UpdateSearchQuery extends OrderListEvent  {
+  final String query;
+  UpdateSearchQuery(this.query);
+}
+
+class HideSearchBar extends OrderListEvent {}

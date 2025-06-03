@@ -27,6 +27,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     on<ClearHeldCart>(_onClearHeldCart);
     on<SubmitCartOrder>(_onSubmitCartOrder);
     on<LoadOrderId>(_onLoadOrderId);
+    on<UpdateOrderType>(_updateOrderType);
   }
 
   Future<void> _onLoadCart(LoadCart event, Emitter<CartState> emit) async {
@@ -164,6 +165,10 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     emit(state.copyWith(loadedOrderId: event.orderId));
   }
 
+  void _updateOrderType(UpdateOrderType event, Emitter<CartState> emit) {
+    emit(state.copyWith(selectedOrderType: event.orderType));
+  }
+
   // submit order ............
   Future<void> _onSubmitCartOrder(
     SubmitCartOrder event,
@@ -233,16 +238,16 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       debugPrint('Cart contains ${state.cartItems.length} items.');
 
       if (loadedOrderId != null) {
-        orderId =
-            int.tryParse(loadedOrderId.toString()) ??
-            int.parse(
-              "${DateTime.now().year}${Random().nextInt(9999).toString().padLeft(4, '0')}",
-            );
-      } else {
-        orderId = int.parse(
-          "${DateTime.now().year}${Random().nextInt(9999).toString().padLeft(4, '0')}",
-        );
+        orderId = int.tryParse(loadedOrderId.toString());
+        // int.parse(
+        //   "${DateTime.now().year}${Random().nextInt(9999).toString().padLeft(4, '0')}",
+        // );
       }
+      // else {
+      //   orderId = int.parse(
+      //     "${DateTime.now().year}${Random().nextInt(9999).toString().padLeft(4, '0')}",
+      //   );
+      // }
       // int orderId =
       //     event.orderId != null
       //         ? int.tryParse(event.orderId!) ??
@@ -266,7 +271,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
             "table_no": event.tableNo ?? "",
             "table_id": event.tableNo ?? "",
             "table_location": event.tableNo ?? "",
-            "type": event.orderType,
+            "type": event.orderType ?? 'dineIn',
             "orderNote": event.orderNote,
             "customer_id": "",
             "table_capacity": tableCapacity ?? "",
@@ -315,7 +320,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
           "splittedAmount": 0,
           "change": 0,
           "discount": 0,
-          "serviceCharges": "",
+          "serviceCharges": "0",
           "saleTax": state.totalSaleTax,
           "finalTotal": state.grandTotal,
           "grandTotal": state.grandTotal,
@@ -324,7 +329,8 @@ class CartBloc extends Bloc<CartEvent, CartState> {
           "updatedOrder": [],
           "orderHistory": loadedOrderId != null ? "updateAble" : "",
           "orderDateTime": formattedDate,
-          "id": orderId,
+          // "id": orderId,
+          if (orderId != null) "id": orderId,
         },
       };
 

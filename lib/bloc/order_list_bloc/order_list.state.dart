@@ -8,6 +8,7 @@ enum OrderStatus { initial, loading, success, error }
 
 // order_list_state.dart
 abstract class OrderListState extends Equatable {
+  
   @override
   List<Object?> get props => [];
 }
@@ -33,3 +34,8 @@ class OrderListError extends OrderListState {
   @override
   List<Object?> get props => [message];
 }
+class SearchVisible extends OrderListState{
+  final String query;
+  SearchVisible({this.query = ''});
+}
+class SearchHidden extends OrderListState {}
