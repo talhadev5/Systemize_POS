@@ -196,7 +196,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '• ${item.title.toString().capitalizeEachWord()}order id : ${data.orderId}',
+                                      '• ${item.title.toString().capitalizeEachWord()}',
                                       style: const TextStyle(
                                         fontWeight: FontWeight.w600,
                                         fontSize: 15,
@@ -272,25 +272,23 @@ class _OrderListScreenState extends State<OrderListScreen> {
                                           )
                                           .toList();
 
-                                  final rawOrderId = 20255944;
-                                  if (rawOrderId == null) {
-                                    developer.log(
-                                      '❌ orderId is null. Cannot proceed.',
-                                    );
-                                    return;
-                                  }
+                                  // final rawOrderId = data.id;
+                                  // if (rawOrderId == null) {
+                                  //   developer.log(
+                                  //     ' orderId is null. Cannot proceed.',
+                                  //   );
+                                  //   return;
+                                  // }
 
-                                  final orderId = int.tryParse(
-                                    rawOrderId.toString(),
-                                  );
-                                  if (orderId == null) {
-                                    developer.log(
-                                      '❌ Failed to parse orderId: $rawOrderId',
-                                    );
-                                    return;
-                                  }
+                                  final orderId = data.id;
+                                  // if (orderId == null) {
+                                  //   developer.log(
+                                  //     ' Failed to parse orderId: $rawOrderId',
+                                  //   );
+                                  //   return;
+                                  // }
 
-                                  developer.log('✅ Parsed orderId: $orderId');
+                                  developer.log(' Parsed orderId: $orderId');
                                   context.read<CartBloc>().add(
                                     LoadOrderId(orderId),
                                   );

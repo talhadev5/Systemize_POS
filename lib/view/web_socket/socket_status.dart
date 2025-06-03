@@ -31,6 +31,8 @@ class WebSocketStatusWidget extends StatelessWidget {
               color: Colors.amber[700],
             );
           } else if (state is WebSocketConnected) {
+            // Navigate after frame is built
+
             return _buildStatus(
               context,
               title: "Connected ✅",

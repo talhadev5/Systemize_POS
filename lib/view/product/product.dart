@@ -119,12 +119,15 @@ class _ProductsPageState extends State<ProductsPage> {
                       if (state.productStatus == ProductStatus.loading) {
                         return const DefultLoader();
                       } else if (state.productStatus == ProductStatus.error) {
-                        return Center(
-                          child: Text(
-                            state.message,
-                            style: TextStyle(color: Colors.red),
-                          ),
+                        context.read<ProductBloc>().add(
+                          ProductApi(forceRefresh: true),
                         );
+                        //  Center(
+                        //   child: Text(
+                        //     state.message,
+                        //     style: TextStyle(color: Colors.red),
+                        //   ),
+                        // );
                       }
                       if (state.filteredProducts.isEmpty) {
                         return const Center(child: Text("No products found"));

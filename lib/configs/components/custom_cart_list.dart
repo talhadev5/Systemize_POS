@@ -125,7 +125,29 @@ class CustomCartListview extends StatelessWidget {
                       ),
                     ],
                   ),
-
+                // Base price if no variation
+                if (productVariation.isEmpty)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.tune,
+                        size: 16,
+                        color: AppColors.customThemeColor,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          "Rs $productPrice",
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppColors.customBlackColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 // Add-on Section
                 if (addonProduct.isNotEmpty)
                   Row(

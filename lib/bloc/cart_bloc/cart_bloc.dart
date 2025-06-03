@@ -322,7 +322,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
           "isUploaded": 0,
           "credited_amount": 0,
           "updatedOrder": [],
-          "orderHistory": "",
+          "orderHistory": loadedOrderId != null ? "updateAble" : "",
           "orderDateTime": formattedDate,
           "id": orderId,
         },
