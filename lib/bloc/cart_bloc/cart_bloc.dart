@@ -270,7 +270,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
             "waiter": userId ?? "",
             "table_no": event.tableNo ?? "",
             "table_id": event.tableNo ?? "",
-            "table_location": event.tableNo ?? "",
+            "table_location": "",
             "type": event.orderType ?? 'dineIn',
             "orderNote": event.orderNote,
             "customer_id": "",
@@ -278,7 +278,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
             "waiterName": userName ?? '',
             "branch_id": branchId ?? "1",
           },
-          "type": event.orderNote ?? "dineIn",
+          "type": event.orderType ?? 'dineIn',
           "cartItems":
               state.cartItems.map((item) {
                 Map<String, dynamic> variationJson =
